@@ -1,10 +1,8 @@
 import base64
-import io
 
 from fastapi import FastAPI, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from PIL import Image
 
 from models.yolo import run_detection
 
@@ -21,7 +19,6 @@ def index():
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()
-    img = Image.open(io.BytesIO(contents))
-    png_bytes, detections = run_detection(img)
+    png_bytes, detections = run_detection(contents)
     image_b64 = base64.b64encode(png_bytes).decode("utf-8")
     return {"image": image_b64, "detections": detections}

@@ -5,7 +5,8 @@ from ultralytics import YOLO
 _model = YOLO("yolov8n.pt")
 
 
-def run_detection(img: Image.Image) -> tuple[bytes, list[dict]]:
+def run_detection(image_bytes: bytes) -> tuple[bytes, list[dict]]:
+    img = Image.open(io.BytesIO(image_bytes))
     results = _model(img)
 
     annotated = results[0].plot()

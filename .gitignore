@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# YOLO / model weights
+*.pt
+*.onnx
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
