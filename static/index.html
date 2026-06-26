@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Director</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; height: 100vh; }
+
+    /* 사이드바 */
+    #sidebar {
+      width: 220px;
+      min-width: 220px;
+      border-right: 1px solid #e0e0e0;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+    }
+    #sidebar .logo {
+      padding: 20px 16px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    #sidebar nav { padding: 8px 0; }
+    #sidebar button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 16px;
+      border: none;
+      border-left: 3px solid transparent;
+      background: transparent;
+      color: #444;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #sidebar button.active {
+      border-left-color: #1a73e8;
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 600;
+    }
+
+    /* 메인 영역 */
+    #main {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #1a1a1a; }
+    h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #333; }
+
+    /* 업로드 버튼 */
+    .upload-label {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #1a73e8;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .upload-label:hover { background: #1558b0; }
+
+    /* 상태 메시지 */
+    #yolo-status { margin-top: 16px; color: #666; font-size: 14px; }
+    #yolo-error {
+      margin-top: 16px;
+      color: #d32f2f;
+      background: #fdecea;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* 결과 영역 */
+    #yolo-result { margin-top: 28px; display: none; gap: 32px; flex-wrap: wrap; }
+    #yolo-result.visible { display: flex; }
+    #yolo-result .col { flex: 1 1 320px; }
+    #yolo-result img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 6px; }
+
+    /* 테이블 */
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th {
+      border: 1px solid #e0e0e0;
+      padding: 8px 10px;
+      background: #f0f4ff;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+    }
+    td { border: 1px solid #e0e0e0; padding: 7px 10px; color: #444; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .mono { font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="logo">Photo Director API Test</div>
+  <nav>
+    <button class="active" data-page="yolo">YOLO 탐지</button>
+    <!-- 새 모델 추가 시: <button data-page="vlm">VLM 분석</button> -->
+  </nav>
+</div>
+
+<div id="main">
+
+  <!-- YOLO 탐지 페이지 -->
+  <div class="page active" id="page-yolo">
+    <h2>YOLO 객체 탐지 Test</h2>
+
+    <label class="upload-label">
+      이미지 파일 선택
+      <input id="yolo-input" type="file" accept="image/*" style="display:none" />
+    </label>
+
+    <p id="yolo-status"></p>
+    <div id="yolo-error"></div>
+
+    <div id="yolo-result">
+      <div class="col">
+        <h3>탐지 결과 이미지</h3>
+        <img id="yolo-img" src="" alt="탐지 결과" />
+      </div>
+      <div class="col">
+        <h3 id="yolo-count">탐지 목록</h3>
+        <table>
+          <thead>
+            <tr><th>클래스</th><th>신뢰도</th><th>BBox [x, y, w, h]</th></tr>
+          </thead>
+          <tbody id="yolo-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 새 모델 페이지 추가 시: <div class="page" id="page-vlm"> ... </div> -->
+
+</div>
+
+<script>
+  // 사이드바 메뉴 전환
+  document.querySelectorAll('#sidebar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#sidebar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('page-' + btn.dataset.page).classList.add('active');
+    });
+  });
+
+  // YOLO 파일 업로드
+  document.getElementById('yolo-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('yolo-status');
+    const errorEl = document.getElementById('yolo-error');
+    const resultEl = document.getElementById('yolo-result');
+
+    status.textContent = '탐지 중...';
+    errorEl.style.display = 'none';
+    resultEl.classList.remove('visible');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/detect-image', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
+
+      const data = await res.json();
+      status.textContent = '';
+
+      // 이미지 표시
+      document.getElementById('yolo-img').src = 'data:image/png;base64,' + data.image;
+
+      // 탐지 목록 표시
+      document.getElementById('yolo-count').textContent =
+        `탐지 목록 (${data.detections.length}개)`;
+
+      const tbody = document.getElementById('yolo-tbody');
+      tbody.innerHTML = data.detections.length === 0
+        ? '<tr><td colspan="3" style="text-align:center;color:#888">탐지된 객체 없음</td></tr>'
+        : data.detections.map(d =>
+            `<tr>
+              <td>${d.class}</td>
+              <td>${d.confidence.toFixed(4)}</td>
+              <td class="mono">[${d.bbox.map(v => v.toFixed(4)).join(', ')}]</td>
+            </tr>`
+          ).join('');
+
+      resultEl.classList.add('visible');
+    } catch (err) {
+      status.textContent = '';
+      errorEl.textContent = '오류: ' + err.message;
+      errorEl.style.display = 'block';
+    }
+
+    // 같은 파일 재선택 허용
+    e.target.value = '';
+  });
+</script>
+
+</body>
+</html>
