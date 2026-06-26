@@ -12,12 +12,12 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
+# API Test 페이지
 @app.get("/")
 def index():
     return FileResponse("static/index.html")
 
-
+# YOLO 객체 탐지 API
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()

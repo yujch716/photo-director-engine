@@ -15,6 +15,10 @@ uvicorn main:app --reload
 ```
 
 
+## 화면 접속
+http://127.0.0.1:8000/
+
+
 ## 프로젝트 구조
 ```bash
 photo-director-engine/
