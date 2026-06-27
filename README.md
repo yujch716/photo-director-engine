@@ -6,7 +6,53 @@ conda create -n photo-director-engine python=3.10
 conda activate photo-director-engine
 pip install fastapi uvicorn python-multipart
 pip install ultralytics
+pip install pyiqa
+pip install realesrgan
 ```
+
+Real-ESRGAN weights are downloaded on first `lower_not_similar` preprocess request.
+If automatic download fails, download this file manually and set `REAL_ESRGAN_MODEL_PATH`:
+
+```bash
+https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth
+```
+
+Logo/arrow removal requires custom YOLO weights trained for SNS logos/arrows.
+Put the weights at `models/logo_yolo.pt`, or set `LOGO_YOLO_MODEL_PATH`.
+YOLO is still required for automatic logo/arrow detection. OpenCV inpaint only removes pixels from a mask, so it cannot find the logo/arrow location by itself.
+
+### Logo/arrow YOLO training
+Put labeled images in YOLO format:
+
+```bash
+data/logo_yolo/
+  images/train/
+  images/val/
+  labels/train/
+  labels/val/
+  dataset.yaml
+```
+
+Classes:
+
+```text
+0 logo
+1 arrow
+```
+
+Train and save `models/logo_yolo.pt`:
+
+```bash
+python models/logo_yolo_train.py --epochs 80 --imgsz 640 --batch 8
+```
+
+Label format per image is YOLO bbox text:
+
+```text
+class_id x_center y_center width height
+```
+
+All coordinates are normalized from 0 to 1.
 
 
 ### 프로젝트 실행
