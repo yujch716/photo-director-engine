@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from models.image_preprocess import run_quality_normalization
 from models.image_preprocess_logo import remove_logo_arrows
+from models.landmark_clip import classify_landmark
 from models.nima import run_nima_score
 from models.yolo import run_detection
 
@@ -64,3 +65,16 @@ async def remove_logo_arrows_image(image: UploadFile):
     image_b64 = base64.b64encode(png_bytes).decode("utf-8")
     mask_b64 = base64.b64encode(mask_bytes).decode("utf-8")
     return {"image": image_b64, "mask": mask_b64, "report": report}
+
+
+@app.post("/classify-landmark")
+async def classify_landmark_image(image: UploadFile):
+    contents = await image.read()
+
+    try:
+        png_bytes, report = classify_landmark(contents)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    image_b64 = base64.b64encode(png_bytes).decode("utf-8")
+    return {"image": image_b64, "report": report}

@@ -8,6 +8,7 @@ pip install fastapi uvicorn python-multipart
 pip install ultralytics
 pip install pyiqa
 pip install realesrgan
+pip install transformers
 ```
 
 Real-ESRGAN weights are downloaded on first `lower_not_similar` preprocess request.
@@ -53,6 +54,22 @@ class_id x_center y_center width height
 ```
 
 All coordinates are normalized from 0 to 1.
+
+### YOLO + CLIP landmark classification
+The landmark classifier reuses `models/yolo.py` to crop detected regions, then compares each crop with CLIP text candidates.
+
+Current output candidates:
+
+```text
+상생의 손(바다)
+상생의 손(육지)
+호미곶 등대
+호미곶 광장
+새천년기념관
+```
+
+Default CLIP model is `openai/clip-vit-base-patch32`.
+Set `LANDMARK_CLIP_MODEL` to use another Hugging Face CLIP-compatible model.
 
 
 ### 프로젝트 실행
