@@ -14,10 +14,6 @@ venv/
 .venv/
 env/
 
-# YOLO / model weights
-*.pt
-*.onnx
-
 # IDE
 .vscode/
 .idea/
