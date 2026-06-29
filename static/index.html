@@ -225,7 +225,7 @@
         <div class="panel">
           <h3>Detected Image</h3>
           <div class="image-frame">
-            <img id="yolo-img" src="" alt="YOLO detection result" />
+            <canvas id="yolo-canvas" style="display:block;width:100%;height:auto;"></canvas>
           </div>
         </div>
         <div class="panel">
@@ -469,7 +469,6 @@
         if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
 
         status.textContent = '';
-        document.getElementById('yolo-img').src = 'data:image/png;base64,' + data.image;
         document.getElementById('yolo-count').textContent = `Detections (${data.detections.length})`;
 
         const tbody = document.getElementById('yolo-tbody');
@@ -484,6 +483,37 @@
             `).join('');
 
         resultEl.classList.add('visible');
+
+        const canvas = document.getElementById('yolo-canvas');
+        const ctx = canvas.getContext('2d');
+        const imgEl = new Image();
+        imgEl.src = URL.createObjectURL(file);
+        imgEl.onload = () => {
+          canvas.width = imgEl.naturalWidth;
+          canvas.height = imgEl.naturalHeight;
+          ctx.drawImage(imgEl, 0, 0);
+
+          data.detections.forEach((d) => {
+            const [xc, yc, bw, bh] = d.bbox;
+            const x = (xc - bw / 2) * canvas.width;
+            const y = (yc - bh / 2) * canvas.height;
+            const pw = bw * canvas.width;
+            const ph = bh * canvas.height;
+
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = Math.max(2, canvas.width / 400);
+            ctx.strokeRect(x, y, pw, ph);
+
+            const label = `${d.class} ${(d.confidence * 100).toFixed(1)}%`;
+            const fontSize = Math.max(14, canvas.width / 60);
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            const tw = ctx.measureText(label).width;
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(x, y - fontSize - 6, tw + 10, fontSize + 6);
+            ctx.fillStyle = '#fff';
+            ctx.fillText(label, x + 5, y - 4);
+          });
+        };
       } catch (err) {
         showError(errorEl, status, err.message);
       }
