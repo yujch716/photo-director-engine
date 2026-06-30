@@ -8,7 +8,7 @@ from models.image_preprocess import run_quality_normalization
 from models.image_preprocess_logo import remove_logo_arrows
 from models.landmark_clip import classify_landmark
 from models.nima import run_nima_score
-from models.yolo import run_detection
+from models.yolo_world import run_yolo_world
 
 app = FastAPI()
 
@@ -23,7 +23,7 @@ def index():
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()
-    detections = run_detection(contents)
+    detections = run_yolo_world(contents)
     return {"detections": detections}
 
 
