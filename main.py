@@ -1,6 +1,7 @@
 import base64
+import json
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -8,7 +9,9 @@ from models.image_preprocess import run_quality_normalization
 from models.image_preprocess_logo import remove_logo_arrows
 from models.landmark_clip import classify_landmark
 from models.nima import run_nima_score
+from models.yolo import run_yolo
 from models.yolo_world import run_yolo_world
+from services.capture import process_capture
 
 app = FastAPI()
 
@@ -23,8 +26,15 @@ def index():
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()
-    detections = run_yolo_world(contents)
+    detections = run_yolo(contents) + run_yolo_world(contents)
     return {"detections": detections}
+
+
+@app.post("/capture")
+async def capture(image: UploadFile, targets: str = Form(default="[]")):
+    contents = await image.read()
+    target_list = json.loads(targets)
+    return process_capture(contents, target_list)
 
 
 @app.post("/preprocess-image")

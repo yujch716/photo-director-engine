@@ -1,16 +1,20 @@
 import io
+import json
+import pathlib
 from PIL import Image
 from ultralytics import YOLOWorld
 
-PERSON_CLASSES = {"person", "people"}
+_CONFIG_PATH = pathlib.Path(__file__).parent.parent / "config" / "yolo_world_classes.json"
+
+
+def _load_classes() -> list[str]:
+    data = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
+    return data["default_classes"]
+
 
 _model = YOLOWorld("yolov8x-worldv2.pt")
-_model.set_classes([
-    "giant hand sculpture rising from the sea",
-    "stone hand monument", "statue", "sculpture", "landmark", "lighthouse",
-    "person", "people",
-    "tower", "building", "bridge", "boat", "car"
-])
+_model.set_classes(_load_classes())
+
 
 def run_yolo_world(image_bytes: bytes) -> list[dict]:
     img = Image.open(io.BytesIO(image_bytes))
@@ -20,8 +24,8 @@ def run_yolo_world(image_bytes: bytes) -> list[dict]:
         cls_name = _model.names[int(box.cls[0])]
         detections.append({
             "class": cls_name,
-            "is_person": cls_name in PERSON_CLASSES,
-            "color": "#FF3B30" if cls_name in PERSON_CLASSES else "#34C759",
+            "is_person": False,
+            "color": "#34C759",
             "confidence": round(float(box.conf[0]), 4),
             "bbox": [round(v, 4) for v in box.xywhn[0].tolist()],
         })

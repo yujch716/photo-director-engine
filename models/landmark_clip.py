@@ -227,3 +227,18 @@ def classify_landmark(image_bytes: bytes) -> tuple[bytes, dict[str, Any]]:
     }
 
     return _pil_to_png_bytes(annotated_img), report
+
+
+def classify_pil(img: Image.Image) -> dict[str, Any]:
+    crops = [{
+        "id": "crop", "source": "full_image", "image": img,
+        "yolo_class": None, "yolo_confidence": 1.0,
+        "bbox_xyxy": [0, 0, img.width, img.height],
+    }]
+    _, label_scores, _ = _score_crops(crops)
+    best_label = max(label_scores, key=label_scores.get)
+    return {
+        "best_label": best_label,
+        "best_score": round(label_scores[best_label], 6),
+        "scores": {label: round(s, 6) for label, s in label_scores.items()},
+    }

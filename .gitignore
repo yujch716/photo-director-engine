@@ -23,3 +23,6 @@ env/
 
 # AI
 *.pt
+
+# Test data (drone snapshots, crops, debug output)
+test-data/
