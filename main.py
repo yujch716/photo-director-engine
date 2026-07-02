@@ -1,6 +1,10 @@
 import base64
 import json
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +16,7 @@ from models.nima import run_nima_score
 from models.yolo import run_yolo
 from models.yolo_world import run_yolo_world
 from services.capture import process_capture
+from services.kakao_places import get_landmarks_by_keyword
 
 app = FastAPI()
 
@@ -28,13 +33,6 @@ async def detect_image(image: UploadFile):
     contents = await image.read()
     detections = run_yolo(contents) + run_yolo_world(contents)
     return {"detections": detections}
-
-
-@app.post("/capture")
-async def capture(image: UploadFile, targets: str = Form(default="[]")):
-    contents = await image.read()
-    target_list = json.loads(targets)
-    return process_capture(contents, target_list)
 
 
 @app.post("/preprocess-image")
@@ -87,3 +85,19 @@ async def classify_landmark_image(image: UploadFile):
 
     image_b64 = base64.b64encode(png_bytes).decode("utf-8")
     return {"image": image_b64, "report": report}
+
+
+@app.post("/capture")
+async def capture(
+    image: UploadFile,
+    targets: str = Form(default="[]"),
+    lat: float | None = Form(default=None),
+    lng: float | None = Form(default=None),
+):
+    contents = await image.read()
+    return process_capture(contents, json.loads(targets), lat, lng)
+
+
+@app.get("/nearby-landmarks")
+def nearby_landmarks(lat: float, lng: float, radius_m: int = 1000):
+    return {"landmarks": get_landmarks_by_keyword(lat, lng, radius_m)}

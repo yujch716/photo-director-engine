@@ -26,3 +26,6 @@ env/
 
 # Test data (drone snapshots, crops, debug output)
 test-data/
+
+# Environment variables
+.env
