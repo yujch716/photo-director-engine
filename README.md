@@ -10,6 +10,7 @@ pip install ultralytics
 pip install pyiqa
 pip install realesrgan
 pip install transformers
+pip install python-dotenv
 ```
 
 

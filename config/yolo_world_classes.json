@@ -1,0 +1,29 @@
+{
+  "default_classes": [
+    "giant hand sculpture rising from the sea",
+    "stone hand monument",
+    "statue",
+    "sculpture",
+    "landmark",
+    "lighthouse",
+    "tower",
+    "building",
+    "bridge"
+  ],
+  "landmarks": [
+    {
+      "name": "호미곶 상생의 손",
+      "lat": 36.0760,
+      "lng": 129.5665,
+      "radius_m": 500,
+      "classes": ["giant hand sculpture rising from the sea", "stone hand monument"]
+    },
+    {
+      "name": "불국사",
+      "lat": 35.7900,
+      "lng": 129.3320,
+      "radius_m": 800,
+      "classes": ["stone pagoda", "temple gate", "buddhist temple"]
+    }
+  ]
+}

@@ -227,3 +227,35 @@ def classify_landmark(image_bytes: bytes) -> tuple[bytes, dict[str, Any]]:
     }
 
     return _pil_to_png_bytes(annotated_img), report
+
+
+_NEGATIVE_LABELS = ["a person", "a tree", "a building", "a random object", "nothing notable"]
+_THRESHOLD = 0.5
+_MARGIN = 0.1
+
+
+def classify_pil(img: Image.Image, candidate_labels: list[str]) -> dict[str, Any]:
+    import torch
+
+    all_labels = candidate_labels + _NEGATIVE_LABELS
+    model, processor, device, _ = _get_clip()
+    inputs = processor(text=all_labels, images=[img], return_tensors="pt", padding=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        probs = model(**inputs).logits_per_image.softmax(dim=1)[0].detach().cpu().numpy()
+
+    scores = {label: round(float(p), 6) for label, p in zip(all_labels, probs)}
+    ranked = sorted(scores, key=scores.__getitem__, reverse=True)
+    top1 = ranked[0]
+    top2 = ranked[1] if len(ranked) > 1 else None
+    is_negative = top1 in _NEGATIVE_LABELS
+    gap = scores[top1] - (scores[top2] if top2 else 0.0)
+
+    landmark = None if (is_negative or scores[top1] < _THRESHOLD or gap < _MARGIN) else top1
+    return {
+        "best_label": top1,
+        "best_score": scores[top1],
+        "is_negative": is_negative,
+        "landmark": landmark,
+        "scores": scores,
+    }
