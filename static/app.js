@@ -389,19 +389,27 @@ async function loadCaptureList() {
   }
 }
 
-function renderCaptureImages(name, original, crops) {
+function renderCaptureImages(name, original, original2x, crops, result) {
   const wrap = document.getElementById('captures-images');
-  const card = (title, file) => `
+  const card = (title, file, extra = '') => `
     <div class="panel" style="width:280px;">
       <h3 style="font-size:13px;">${title}</h3>
       <div class="image-frame">
         <img src="/drone-data/${name}/${file}" alt="${file}" />
       </div>
       <div class="score-meta" style="margin-top:6px;">${file}</div>
+      ${extra}
     </div>
   `;
   let html = '';
-  if (original) html += card('Original', original);
+  if (original) html += card('Original (1x)', original);
+  if (original2x) {
+    const box = (result && result.original_2x) || null;
+    const coords = box
+      ? `<div class="score-meta mono" style="margin-top:4px;">crop 좌표: [${box.left}, ${box.top}, ${box.right}, ${box.bottom}]</div>`
+      : '';
+    html += card('Original (2x)', original2x, coords);
+  }
   crops.forEach((f, i) => { html += card(`Crop ${i}`, f); });
   wrap.innerHTML = html || '<p style="color:#6b7280;">이미지 없음</p>';
 }
@@ -411,6 +419,10 @@ function renderCaptureMeta(result) {
   if (!result) { el.innerHTML = '<p style="color:#6b7280;">result.json 없음</p>'; return; }
   const loc = result.location || {};
   const nearby = result.nearby_landmarks || [];
+  const box2x = result.original_2x;
+  const box2xText = box2x
+    ? `[${box2x.left}, ${box2x.top}, ${box2x.right}, ${box2x.bottom}] (left, top, right, bottom)`
+    : '없음';
   el.innerHTML = `
     <table>
       <tbody>
@@ -418,6 +430,7 @@ function renderCaptureMeta(result) {
         <tr><td class="mono">경도 (lng)</td><td>${loc.lng ?? '없음'}</td></tr>
         <tr><td class="mono">주변 관광명소</td><td>${nearby.length ? nearby.map((p) => p.name).join(', ') : '(없음)'}</td></tr>
         <tr><td class="mono">타깃 수</td><td>${(result.targets || []).length}개</td></tr>
+        <tr><td class="mono">2배율 crop 좌표</td><td class="mono">${box2xText}</td></tr>
       </tbody>
     </table>
   `;
@@ -468,7 +481,7 @@ async function loadCaptureDetail(name) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
 
-    renderCaptureImages(data.name, data.original, data.crops);
+    renderCaptureImages(data.name, data.original, data.original_2x, data.crops, data.result);
     renderCaptureMeta(data.result);
     renderCaptureResults(data.result);
     detail.style.display = 'block';

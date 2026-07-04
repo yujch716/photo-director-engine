@@ -38,8 +38,7 @@ def process_capture(
 
     results = []
     if target_list:
-        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        W, H = img.size
+        img = base_img
         for i, t in enumerate(target_list):
             cx, cy, w, h = t["bbox"]
             box = (
@@ -79,6 +78,13 @@ def process_capture(
         "nearby_landmarks": nearby_places,
         "candidate_labels": nearby_names,
         "targets": target_list,
+        # original_2x.jpg가 원본에서 잘라낸 영역(중앙 절반)의 픽셀 좌표
+        "original_2x": {
+            "left": zoom_box[0],
+            "top": zoom_box[1],
+            "right": zoom_box[2],
+            "bottom": zoom_box[3],
+        },
         "results": results,
     }
     (capture_dir / "result.json").write_bytes(

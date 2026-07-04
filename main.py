@@ -51,7 +51,10 @@ def get_capture(name: str):
         p.name for p in folder.iterdir()
         if p.suffix.lower() in {".jpg", ".jpeg", ".png"}
     )
-    original = next((f for f in images if "crop" not in f.lower()), None)
+    original = next(
+        (f for f in images if "crop" not in f.lower() and "2x" not in f.lower()), None
+    )
+    original_2x = next((f for f in images if "2x" in f.lower()), None)
     crops = [f for f in images if "crop" in f.lower()]
 
     result = None
@@ -59,7 +62,13 @@ def get_capture(name: str):
     if result_path.exists():
         result = json.loads(result_path.read_text(encoding="utf-8"))
 
-    return {"name": name, "original": original, "crops": crops, "result": result}
+    return {
+        "name": name,
+        "original": original,
+        "original_2x": original_2x,
+        "crops": crops,
+        "result": result,
+    }
 
 # YOLO 객체 탐지 API
 @app.post("/detect-image")
