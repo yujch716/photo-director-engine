@@ -16,6 +16,7 @@ from models.landmark_clip import classify_landmark
 from models.nima import run_nima_score
 from models.yolo import run_yolo
 from models.yolo_world import run_yolo_world
+from models.homigot_hand_yolo8n import run_homigot_hand_yolo
 from services.capture import process_capture
 from services.kakao_places import get_landmarks_by_keyword
 
@@ -64,7 +65,7 @@ def get_capture(name: str):
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()
-    detections = run_yolo(contents) + run_yolo_world(contents)
+    detections = run_yolo(contents) + run_yolo_world(contents) + run_homigot_hand_yolo(contents)
     return {"detections": detections}
 
 

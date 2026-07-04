@@ -1,5 +1,6 @@
 import io
 import os
+from pathlib import Path
 
 from PIL import Image
 from ultralytics import YOLO
@@ -7,14 +8,16 @@ from ultralytics import YOLO
 # 학습된 상생의손 전용 YOLO 모델 파일명
 # 이 py 파일과 같은 폴더에 homigot_hand_yolo8n.pt를 두면 됨.
 # 경로를 따로 지정하고 싶으면 환경변수 HOMIGOT_YOLO_MODEL_PATH 사용.
-MODEL_PATH = os.getenv("HOMIGOT_YOLO_MODEL_PATH", "homigot_hand_yolo8n.pt")
+
+_DEFAULT_MODEL_PATH = Path(__file__).parent / "homigot_hand_yolo8n.pt"
+MODEL_PATH = os.getenv("HOMIGOT_YOLO_MODEL_PATH", str(_DEFAULT_MODEL_PATH))
 
 HOMIGOT_CLASSES = {"homigot_hand"}
 
 _model = YOLO(MODEL_PATH)
 
 
-def run_yolo(image_bytes: bytes) -> list[dict]:
+def run_homigot_hand_yolo(image_bytes: bytes) -> list[dict]:
     """
     상생의손 전용 YOLO 추론 함수.
 
