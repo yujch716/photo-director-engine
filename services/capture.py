@@ -22,7 +22,16 @@ def process_capture(
     capture_dir = TEST_DATA_DIR / name
     capture_dir.mkdir(parents=True, exist_ok=True)
 
-    (capture_dir / "original.jpg").write_bytes(image_bytes)
+    (capture_dir / "original_1x.jpg").write_bytes(image_bytes)
+
+    # 정가운데를 2배율로 줌 땡긴 사진 저장
+    base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    W, H = base_img.size
+    zoom_box = (W // 4, H // 4, W - W // 4, H - H // 4)  # 중앙 절반 영역
+    zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
+    zoom_buf = io.BytesIO()
+    zoomed.save(zoom_buf, format="JPEG")
+    (capture_dir / "original_2x.jpg").write_bytes(zoom_buf.getvalue())
 
     nearby_places = get_landmarks_by_keyword(lat, lng) if lat is not None and lng is not None else []
     nearby_names = [p["name"] for p in nearby_places]
