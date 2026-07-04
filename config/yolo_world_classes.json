@@ -1,29 +1,97 @@
 {
   "default_classes": [
-    "giant hand sculpture rising from the sea",
-    "stone hand monument",
-    "statue",
-    "sculpture",
-    "landmark",
-    "lighthouse",
-    "tower",
-    "building",
-    "bridge"
+    "Korean pavilion over water"
   ],
   "landmarks": [
     {
-      "name": "호미곶 상생의 손",
-      "lat": 36.0760,
-      "lng": 129.5665,
+      "name": "영일대",
+      "lat": null,
+      "lng": null,
       "radius_m": 500,
-      "classes": ["giant hand sculpture rising from the sea", "stone hand monument"]
+      "classes": [
+        "Korean pavilion over water"
+      ]
+    },
+    {
+      "name": "첨성대",
+      "lat": null,
+      "lng": null,
+      "radius_m": 500,
+      "classes": [
+        "ancient stone observatory"
+      ]
     },
     {
       "name": "불국사",
-      "lat": 35.7900,
-      "lng": 129.3320,
+      "lat": 35.79,
+      "lng": 129.332,
       "radius_m": 800,
-      "classes": ["stone pagoda", "temple gate", "buddhist temple"]
+      "classes": [
+        "Korean Buddhist temple"
+      ]
+    },
+    {
+      "name": "다보탑",
+      "lat": null,
+      "lng": null,
+      "radius_m": 300,
+      "classes": [
+        "ornate stone pagoda"
+      ]
+    },
+    {
+      "name": "석가탑",
+      "lat": null,
+      "lng": null,
+      "radius_m": 300,
+      "classes": [
+        "three-story stone pagoda"
+      ]
+    },
+    {
+      "name": "대릉원",
+      "lat": null,
+      "lng": null,
+      "radius_m": 700,
+      "classes": [
+        "large grassy burial mound"
+      ]
+    },
+    {
+      "name": "안압지",
+      "lat": null,
+      "lng": null,
+      "radius_m": 600,
+      "classes": [
+        "traditional Korean pavilion by pond"
+      ]
+    },
+    {
+      "name": "연오랑세오녀상",
+      "lat": null,
+      "lng": null,
+      "radius_m": 500,
+      "classes": [
+        "couple statue"
+      ]
+    },
+    {
+      "name": "호미곶등대",
+      "lat": null,
+      "lng": null,
+      "radius_m": 500,
+      "classes": [
+        "white lighthouse"
+      ]
+    },
+    {
+      "name": "철길의 숲 불의 정원",
+      "lat": null,
+      "lng": null,
+      "radius_m": 500,
+      "classes": [
+        "small gas flame"
+      ]
     }
   ]
 }
