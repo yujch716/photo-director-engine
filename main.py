@@ -1,5 +1,6 @@
 import base64
 import json
+import pathlib
 
 from dotenv import load_dotenv
 
@@ -20,12 +21,44 @@ from services.kakao_places import get_landmarks_by_keyword
 
 app = FastAPI()
 
+DRONE_DATA_DIR = pathlib.Path("drone-data")
+DRONE_DATA_DIR.mkdir(exist_ok=True)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/drone-data", StaticFiles(directory="drone-data"), name="drone-data")
 
 # API Test 페이지
 @app.get("/")
 def index():
     return FileResponse("static/index.html")
+
+
+@app.get("/captures")
+def list_captures():
+    names = [p.name for p in DRONE_DATA_DIR.iterdir() if p.is_dir()]
+    names.sort(reverse=True)  # 최신 폴더 먼저
+    return {"captures": names}
+
+
+@app.get("/captures/{name}")
+def get_capture(name: str):
+    folder = DRONE_DATA_DIR / name
+    if not folder.is_dir():
+        raise HTTPException(status_code=404, detail="capture not found")
+
+    images = sorted(
+        p.name for p in folder.iterdir()
+        if p.suffix.lower() in {".jpg", ".jpeg", ".png"}
+    )
+    original = next((f for f in images if "crop" not in f.lower()), None)
+    crops = [f for f in images if "crop" in f.lower()]
+
+    result = None
+    result_path = folder / "result.json"
+    if result_path.exists():
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+
+    return {"name": name, "original": original, "crops": crops, "result": result}
 
 # YOLO 객체 탐지 API
 @app.post("/detect-image")

@@ -9,7 +9,7 @@ from PIL import Image
 from models.landmark_clip import classify_pil
 from services.kakao_places import get_landmarks_by_keyword
 
-TEST_DATA_DIR = pathlib.Path("drone-info")
+TEST_DATA_DIR = pathlib.Path("drone-data")
 
 
 def process_capture(
@@ -19,9 +19,10 @@ def process_capture(
     lng: float | None,
 ) -> dict[str, Any]:
     name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    TEST_DATA_DIR.mkdir(exist_ok=True)
+    capture_dir = TEST_DATA_DIR / name
+    capture_dir.mkdir(parents=True, exist_ok=True)
 
-    (TEST_DATA_DIR / f"{name}.jpg").write_bytes(image_bytes)
+    (capture_dir / "original.jpg").write_bytes(image_bytes)
 
     nearby_places = get_landmarks_by_keyword(lat, lng) if lat is not None and lng is not None else []
     nearby_names = [p["name"] for p in nearby_places]
@@ -42,7 +43,7 @@ def process_capture(
 
             buf = io.BytesIO()
             crop.save(buf, format="JPEG")
-            (TEST_DATA_DIR / f"{name}_crop{i}.jpg").write_bytes(buf.getvalue())
+            (capture_dir / f"crop{i}.jpg").write_bytes(buf.getvalue())
 
             landmark = None
             confidence = None
@@ -58,6 +59,7 @@ def process_capture(
             results.append({
                 "class": t["class"],
                 "bbox": t["bbox"],
+                "bbox_pixel": {"left": box[0], "top": box[1], "right": box[2], "bottom": box[3]},
                 "landmark": landmark,
                 "confidence": confidence,
                 "scores": scores,
@@ -66,10 +68,11 @@ def process_capture(
     payload = {
         "location": {"lat": lat, "lng": lng},
         "nearby_landmarks": nearby_places,
+        "candidate_labels": nearby_names,
         "targets": target_list,
         "results": results,
     }
-    (TEST_DATA_DIR / f"{name}.json").write_bytes(
+    (capture_dir / "result.json").write_bytes(
         json.dumps(payload, ensure_ascii=False, indent=2).encode()
     )
 
