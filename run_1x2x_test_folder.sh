@@ -14,7 +14,7 @@ echo "[RUN] folder = $FOLDER_NAME"
 echo "[RUN] input  = $INPUT_DIR"
 echo "[RUN] output = $OUTPUT_DIR"
 
-python models/best_crop_1x2x_folder.py \
+python run_best_crop.py \
   --input-dir "$INPUT_DIR" \
   --output-dir "$OUTPUT_DIR" \
   --general-embedding-dir /data/MyGit/photo-director-engine/imbeddingdata/dinov2imbedding \
