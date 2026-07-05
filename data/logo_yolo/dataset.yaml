@@ -1,5 +1,0 @@
-path: data/logo_yolo/data/logo_yolo
-train: images/train
-val: images/val
-names:
-  0: youtube_logo

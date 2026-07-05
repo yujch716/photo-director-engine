@@ -13,9 +13,6 @@
     <div class="logo">Photo Director API Test</div>
     <nav>
       <button class="active" data-page="yolo">YOLO Detection</button>
-      <button data-page="preprocess">Image Preprocess</button>
-      <button data-page="logo-remove">Logo Remove</button>
-      <button data-page="landmark">Landmark CLIP</button>
       <button data-page="nima">NIMA Score</button>
       <button data-page="kakao-map">Kakao Map</button>
       <button data-page="captures">Capture Viewer</button>
@@ -60,40 +57,6 @@
       </div>
     </section>
 
-    <section class="page" id="page-preprocess">
-      <h2>Image Preprocess Test</h2>
-
-      <div class="toolbar">
-        <label class="upload-label">
-          Select Image
-          <input id="preprocess-input" type="file" accept="image/*" hidden />
-        </label>
-        <span class="file-name" id="preprocess-file-name"></span>
-      </div>
-
-      <p class="status" id="preprocess-status"></p>
-      <div class="error" id="preprocess-error"></div>
-
-      <div class="result-grid" id="preprocess-result">
-        <div class="panel">
-          <h3>Original Image</h3>
-          <div class="image-frame">
-            <img id="preprocess-original-img" src="" alt="Original image" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>Preprocessed Image</h3>
-          <div class="image-frame">
-            <img id="preprocess-img" src="" alt="Preprocessed result" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>Preprocess Report</h3>
-          <div id="preprocess-report"></div>
-        </div>
-      </div>
-    </section>
-
     <section class="page" id="page-nima">
       <h2>NIMA Score Test</h2>
 
@@ -119,79 +82,6 @@
           <h3>NIMA Result</h3>
           <div class="score" id="nima-score">0.00</div>
           <div class="score-meta" id="nima-device"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="page" id="page-logo-remove">
-      <h2>Logo / Arrow Remove Test</h2>
-
-      <div class="toolbar">
-        <label class="upload-label">
-          Select Image
-          <input id="logo-remove-input" type="file" accept="image/*" hidden />
-        </label>
-        <span class="file-name" id="logo-remove-file-name"></span>
-      </div>
-
-      <p class="status" id="logo-remove-status"></p>
-      <div class="error" id="logo-remove-error"></div>
-
-      <div class="result-grid" id="logo-remove-result">
-        <div class="panel">
-          <h3>Original Image</h3>
-          <div class="image-frame">
-            <img id="logo-remove-original-img" src="" alt="Original logo removal input" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>YOLO Mask</h3>
-          <div class="image-frame">
-            <img id="logo-remove-mask-img" src="" alt="Logo detection mask" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>Removed Image</h3>
-          <div class="image-frame">
-            <img id="logo-remove-img" src="" alt="Logo removed result" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>Removal Report</h3>
-          <div id="logo-remove-report"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="page" id="page-landmark">
-      <h2>YOLO + CLIP Landmark Test</h2>
-
-      <div class="toolbar">
-        <label class="upload-label">
-          Select Image
-          <input id="landmark-input" type="file" accept="image/*" hidden />
-        </label>
-        <span class="file-name" id="landmark-file-name"></span>
-      </div>
-
-      <p class="status" id="landmark-status"></p>
-      <div class="error" id="landmark-error"></div>
-
-      <div class="result-grid" id="landmark-result">
-        <div class="panel">
-          <h3>YOLO Regions</h3>
-          <div class="image-frame">
-            <img id="landmark-img" src="" alt="YOLO landmark regions" />
-          </div>
-        </div>
-        <div class="panel">
-          <h3>Best Landmark</h3>
-          <div class="score" id="landmark-name" style="font-size:28px">-</div>
-          <div class="score-meta" id="landmark-score"></div>
-        </div>
-        <div class="panel">
-          <h3>Landmark Report</h3>
-          <div id="landmark-report"></div>
         </div>
       </div>
     </section>

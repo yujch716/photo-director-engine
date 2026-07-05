@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import json
 import pathlib
@@ -10,9 +12,6 @@ from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from models.image_preprocess import run_quality_normalization
-from models.image_preprocess_logo import remove_logo_arrows
-from models.landmark_clip import classify_landmark
 from models.nima import run_nima_score
 from models.yolo import run_yolo
 from models.yolo_world import run_yolo_world
@@ -77,20 +76,6 @@ async def detect_image(image: UploadFile):
     detections = run_yolo(contents) + run_yolo_world(contents) + run_homigot_hand_yolo(contents)
     return {"detections": detections}
 
-
-@app.post("/preprocess-image")
-async def preprocess_image(image: UploadFile):
-    contents = await image.read()
-
-    try:
-        jpg_bytes, report = run_quality_normalization(contents)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    image_b64 = base64.b64encode(jpg_bytes).decode("utf-8")
-    return {"image": image_b64, "report": report}
-
-
 @app.post("/nima-score")
 async def nima_score(image: UploadFile):
     contents = await image.read()
@@ -101,34 +86,6 @@ async def nima_score(image: UploadFile):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return result
-
-
-@app.post("/remove-logo-arrows")
-async def remove_logo_arrows_image(image: UploadFile):
-    contents = await image.read()
-
-    try:
-        png_bytes, mask_bytes, report = remove_logo_arrows(contents)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    image_b64 = base64.b64encode(png_bytes).decode("utf-8")
-    mask_b64 = base64.b64encode(mask_bytes).decode("utf-8")
-    return {"image": image_b64, "mask": mask_b64, "report": report}
-
-
-@app.post("/classify-landmark")
-async def classify_landmark_image(image: UploadFile):
-    contents = await image.read()
-
-    try:
-        png_bytes, report = classify_landmark(contents)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    image_b64 = base64.b64encode(png_bytes).decode("utf-8")
-    return {"image": image_b64, "report": report}
-
 
 @app.post("/capture")
 async def capture(

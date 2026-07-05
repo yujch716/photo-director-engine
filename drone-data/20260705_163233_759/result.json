@@ -1,0 +1,67 @@
+{
+  "location": {
+    "lat": null,
+    "lng": null
+  },
+  "nearby_landmarks": [],
+  "candidate_labels": [],
+  "tags": {
+    "time": "evening",
+    "weather": "rain",
+    "location": "outdoor",
+    "person_count": null,
+    "flags": [
+      "mountain",
+      "forest",
+      "sun",
+      "structure"
+    ],
+    "facing": "mixed",
+    "landmark": "yeonorang_seonyeo"
+  },
+  "targets": [
+    {
+      "class": "target",
+      "bbox": [
+        0.5,
+        0.5,
+        0.4,
+        0.4
+      ]
+    }
+  ],
+  "original_2x": {
+    "left": 214,
+    "top": 123,
+    "right": 643,
+    "bottom": 371
+  },
+  "results": [
+    {
+      "class": "target",
+      "bbox": [
+        0.5,
+        0.5,
+        0.4,
+        0.4
+      ],
+      "bbox_pixel": {
+        "left": 257,
+        "top": 148,
+        "right": 599,
+        "bottom": 345
+      },
+      "landmark": "daereungwon",
+      "confidence": 0.252226,
+      "scores": {
+        "hands_of_harmony": 0.248824,
+        "cheomseongdae": 0.231182,
+        "dabotap": 0.238988,
+        "seokgatap": 0.234505,
+        "daereungwon": 0.252226,
+        "yeongildae": 0.246723,
+        "yeonorang_seonyeo": 0.248445
+      }
+    }
+  ]
+}

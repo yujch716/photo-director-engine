@@ -1,53 +1,3 @@
-const formatValue = (value) => {
-  if (typeof value === 'number') {
-    return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(4);
-  }
-  if (typeof value === 'boolean') return value ? 'true' : 'false';
-  return String(value);
-};
-
-const renderReport = (report) => {
-  const labels = {
-    target: 'Target',
-    original: 'Original',
-    after_resize: 'After Resize',
-    resolution: 'Resolution Policy',
-    detection: 'Detection',
-    inpaint: 'Inpaint',
-    detections: 'Detections',
-    best_landmark: 'Best Landmark',
-    scores: 'Scores',
-    clip: 'CLIP',
-    yolo: 'YOLO',
-    crops: 'YOLO Crops',
-    noise: 'Noise',
-    sharpness: 'Sharpness',
-    compression: 'Compression',
-    final: 'Final',
-  };
-
-  return Object.entries(report).map(([group, values]) => {
-    const normalizedValues = Array.isArray(values)
-      ? values.reduce((acc, value, index) => ({ ...acc, [`item_${index + 1}`]: JSON.stringify(value) }), {})
-      : values;
-    const rows = Object.entries(normalizedValues).map(([key, value]) => `
-      <tr>
-        <td class="mono">${key}</td>
-        <td>${formatValue(value)}</td>
-      </tr>
-    `).join('');
-
-    return `
-      <div class="metric-group">
-        <div class="metric-title">${labels[group] || group}</div>
-        <table>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    `;
-  }).join('');
-};
-
 const showError = (errorEl, statusEl, message) => {
   statusEl.textContent = '';
   errorEl.textContent = 'Error: ' + message;
@@ -137,39 +87,6 @@ document.getElementById('yolo-input').addEventListener('change', async (event) =
   event.target.value = '';
 });
 
-document.getElementById('preprocess-input').addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const status = document.getElementById('preprocess-status');
-  const errorEl = document.getElementById('preprocess-error');
-  const resultEl = document.getElementById('preprocess-result');
-  document.getElementById('preprocess-file-name').textContent = file.name;
-
-  status.textContent = 'Preprocessing...';
-  errorEl.style.display = 'none';
-  resultEl.classList.remove('visible');
-  document.getElementById('preprocess-original-img').src = URL.createObjectURL(file);
-
-  try {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const res = await fetch('/preprocess-image', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
-
-    status.textContent = '';
-    document.getElementById('preprocess-img').src = 'data:image/jpeg;base64,' + data.image;
-    document.getElementById('preprocess-report').innerHTML = renderReport(data.report);
-    resultEl.classList.add('visible');
-  } catch (err) {
-    showError(errorEl, status, err.message);
-  }
-
-  event.target.value = '';
-});
-
 document.getElementById('nima-input').addEventListener('change', async (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -195,74 +112,6 @@ document.getElementById('nima-input').addEventListener('change', async (event) =
     status.textContent = '';
     document.getElementById('nima-score').textContent = data.score.toFixed(2);
     document.getElementById('nima-device').textContent = `Device: ${data.device}`;
-    resultEl.classList.add('visible');
-  } catch (err) {
-    showError(errorEl, status, err.message);
-  }
-
-  event.target.value = '';
-});
-
-document.getElementById('logo-remove-input').addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const status = document.getElementById('logo-remove-status');
-  const errorEl = document.getElementById('logo-remove-error');
-  const resultEl = document.getElementById('logo-remove-result');
-  document.getElementById('logo-remove-file-name').textContent = file.name;
-
-  status.textContent = 'Detecting logo/arrow boxes and inpainting...';
-  errorEl.style.display = 'none';
-  resultEl.classList.remove('visible');
-  document.getElementById('logo-remove-original-img').src = URL.createObjectURL(file);
-
-  try {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const res = await fetch('/remove-logo-arrows', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
-
-    status.textContent = '';
-    document.getElementById('logo-remove-img').src = 'data:image/png;base64,' + data.image;
-    document.getElementById('logo-remove-mask-img').src = 'data:image/png;base64,' + data.mask;
-    document.getElementById('logo-remove-report').innerHTML = renderReport(data.report);
-    resultEl.classList.add('visible');
-  } catch (err) {
-    showError(errorEl, status, err.message);
-  }
-
-  event.target.value = '';
-});
-
-document.getElementById('landmark-input').addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const status = document.getElementById('landmark-status');
-  const errorEl = document.getElementById('landmark-error');
-  const resultEl = document.getElementById('landmark-result');
-  document.getElementById('landmark-file-name').textContent = file.name;
-
-  status.textContent = 'Running YOLO crops and CLIP landmark matching...';
-  errorEl.style.display = 'none';
-  resultEl.classList.remove('visible');
-
-  try {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const res = await fetch('/classify-landmark', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
-
-    status.textContent = '';
-    document.getElementById('landmark-img').src = 'data:image/png;base64,' + data.image;
-    document.getElementById('landmark-name').textContent = data.report.best_landmark;
-    document.getElementById('landmark-score').textContent = `Score: ${data.report.best_score.toFixed(4)}`;
-    document.getElementById('landmark-report').innerHTML = renderReport(data.report);
     resultEl.classList.add('visible');
   } catch (err) {
     showError(errorEl, status, err.message);

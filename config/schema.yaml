@@ -1,0 +1,56 @@
+# ============================================================
+# schema.yaml  —  SINGLE SOURCE OF TRUTH
+# 태그를 바꾸려면 이 파일만 고치면 됨.
+# 프롬프트, 검증, 문서 전부 이 파일에서 자동 생성된다.
+# ============================================================
+
+# 항상 존재하고, 정해진 값 중 하나를 갖는 속성
+fields:
+  time:
+    values: [day, evening, night]
+    required: true
+    desc: "촬영 시간대. evening은 노을/골든아워 포함."
+  weather:
+    values: [clear, cloudy, rain, snow]
+    required: true
+    desc: "날씨. 하나만."
+  location:
+    values: [indoor, outdoor]
+    required: true
+    desc: "실내/실외."
+
+# 정수 카운트 속성
+counts:
+  person_count:
+    desc: "사진의 타깃 인물 수 (관중 제외)."
+
+# 보이면 붙이는 플래그 (리스트)
+flags:
+  sea:        "바다가 보임"
+  ground:     "땅/지면이 보임"
+  mountain:   "산이 보임"
+  forest:     "숲/나무가 보임 (야자수 등 모든 나무 포함)"
+  river:      "강/하천이 보임"
+  cloud:      "구름이 보임"
+  sun:        "태양이 보임"
+  bystander:  "타깃이 아닌 사람(관중)이 찍힘"
+  vehicle:      "탈것(배/차/비행기 등)이 보임"
+  structure:    "인공 구조물(건물/다리/타워 등)이 보임"
+
+# 정해진 후보 중 하나, 없으면 null (nullable enum)
+enums:
+  facing:
+    values: [front, side, back, mixed]
+    nullable: true
+    desc: >
+      인물들이 주로 향한 방향 (구도 판단용). 사람이 없으면 null.
+      front=대부분 정면, side=대부분 측면, back=대부분 후면(등),
+      mixed=방향이 섞여 있음.
+  landmark:
+    values: [hands_of_harmony, cheomseongdae, dabotap, seokgatap, daereungwon, yeongildae, yeonorang_seonyeo]
+    nullable: true
+    desc: >
+      식별 가능한 랜드마크. 후보 중 하나만, 없으면 null.
+      hands_of_harmony=상생의손, cheomseongdae=첨성대, dabotap=다보탑,
+      seokgatap=석가탑, daereungwon=대릉원, yeongildae=영일대 전망대,
+      yeonorang_seonyeo=연오랑세오녀상.

@@ -1,72 +1,220 @@
+"""CLIP zero-shot 태깅.
+
+config/schema.yaml(태그 단일 소스)을 기준으로 두 가지를 수행한다.
+- identify_object(image_bytes, bbox): YOLO bbox 안의 객체가 어떤 랜드마크인지 식별
+- tag_image(image_bytes): 전체 이미지를 보고 schema.yaml 형식대로 태깅
+
+백엔드는 transformers CLIP(openai/clip-vit-base-patch32).
+"""
+
 from __future__ import annotations
 
-import base64
 import io
 import os
+import pathlib
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
+import yaml
 from PIL import Image, ImageOps
 
-from models.yolo import _model as yolo_model
-
-
 DEFAULT_CLIP_MODEL = "openai/clip-vit-base-patch32"
+SCHEMA_PATH = pathlib.Path(__file__).resolve().parent.parent / "config" / "schema.yaml"
 
-LANDMARK_CANDIDATES: list[dict[str, Any]] = [
-    {
-        "label": "상생의 손(바다)",
-        "prompts": [
-            "상생의 손 바다",
-            "Hand of Harmony in the sea",
-            "Homigot hand sculpture in the ocean",
-            "Pohang Homigot sea hand sunrise sculpture",
-        ],
-    },
-    {
-        "label": "상생의 손(육지)",
-        "prompts": [
-            "상생의 손 육지",
-            "Hand of Harmony on land",
-            "Homigot hand sculpture on land",
-            "Pohang Homigot land hand sculpture",
-        ],
-    },
-    {
-        "label": "호미곶 등대",
-        "prompts": [
-            "호미곶 등대",
-            "Homigot lighthouse",
-            "Pohang Homigot lighthouse",
-            "white lighthouse at Homigot",
-        ],
-    },
-    {
-        "label": "호미곶 광장",
-        "prompts": [
-            "호미곶 광장",
-            "Homigot square",
-            "Homigot plaza",
-            "Pohang Homigot public square",
-        ],
-    },
-    {
-        "label": "새천년기념관",
-        "prompts": [
-            "새천년기념관",
-            "New Millennium Memorial Hall",
-            "Homigot New Millennium Memorial Hall",
-            "Pohang Saecheonnyeon Memorial Hall building",
-        ],
-    },
+# 임계값 (raw 코사인 유사도 기준, 튜닝용). ViT-B/32에서 매칭 개념은 대략
+# 0.25~0.33, 비매칭은 0.15~0.22 정도로 나온다. 실데이터로 보정 권장.
+LANDMARK_THRESHOLD = 0.24   # bbox 객체 식별 시 랜드마크 인정 최소 코사인
+TAG_LANDMARK_THRESHOLD = 0.24   # 전체 이미지 태깅 시 랜드마크 인정 최소 코사인
+FACING_THRESHOLD = 0.22     # facing 인정 최소 코사인
+NEG_MARGIN = 0.01           # nullable 판정 시 negative보다 이만큼은 높아야 인정
+# 플래그는 present/absent 최소쌍(minimal pair)의 코사인 차이로 판정한다.
+# 프롬프트별 baseline이 상쇄되어 플래그 간 비교가 가능해진다. (신호가 약하므로 실데이터 보정 권장)
+FLAG_MARGIN = 0.003         # cos(present) - cos(absent) 가 이 값 이상이면 present
+
+# "랜드마크 없음"을 흡수하기 위한 negative 프롬프트
+_NEGATIVE_LANDMARK_PROMPTS = [
+    "a random scene with no notable landmark",
+    "ordinary background, sky, sea or ground with no landmark",
+    "그냥 배경, 특별한 랜드마크 없음",
 ]
+
+# 플래그 minimal-pair 판정용 간결 명사구 (present/absent 프롬프트에 삽입)
+_FLAG_NOUNS: dict[str, str] = {
+    "sea": "the sea or ocean",
+    "ground": "bare ground or soil",
+    "mountain": "a mountain",
+    "forest": "trees or a forest",
+    "river": "a river or stream",
+    "cloud": "clouds in the sky",
+    "sun": "the sun",
+    "bystander": "a crowd of bystanders",
+    "vehicle": "a vehicle such as a boat, car or airplane",
+    "structure": "a building, bridge or man-made structure",
+}
+_FLAG_PRESENT = "a photo that clearly shows {noun}"
+_FLAG_ABSENT = "a photo that does not show {noun}"
+
+
+# ---------------------------------------------------------------------------
+# 스키마 로딩 + 프롬프트 맵
+# ---------------------------------------------------------------------------
+
+# 스키마 값(영문 id) -> CLIP 텍스트 프롬프트 후보들.
+# 여러 표현을 주고 그 중 최대 유사도를 그 id의 점수로 사용한다.
+PROMPTS: dict[str, list[str]] = {
+    # fields.time
+    "day": ["a photo taken during the day", "bright daytime", "낮에 찍은 사진"],
+    "evening": [
+        "a photo at sunset or golden hour",
+        "evening sky with sunset glow",
+        "노을 지는 저녁, 골든아워",
+    ],
+    "night": ["a photo taken at night", "dark night scene", "밤에 찍은 사진"],
+    # fields.weather
+    "clear": ["clear sunny sky", "clear weather with blue sky", "맑은 날씨"],
+    "cloudy": ["cloudy overcast sky", "gray cloudy weather", "흐린 날씨, 구름 낀 하늘"],
+    "rain": ["rainy weather", "raining outside", "비 오는 날씨"],
+    "snow": ["snowy weather", "snow falling, snowy scene", "눈 오는 날씨"],
+    # fields.location
+    "indoor": ["an indoor scene, inside a building", "실내"],
+    "outdoor": ["an outdoor scene, outside", "실외, 야외"],
+    # enums.facing
+    "front": ["people facing the camera from the front", "정면을 보고 있는 사람들"],
+    "side": ["people seen from the side, profile view", "측면으로 서 있는 사람들"],
+    "back": ["people seen from behind, showing their backs", "등을 보이는 사람들"],
+    "mixed": ["people facing different directions", "여러 방향을 향한 사람들"],
+    # enums.landmark
+    "hands_of_harmony": [
+        "the Hand of Harmony sculpture in Pohang",
+        "상생의 손 조각상",
+        "a giant hand sculpture rising from the sea",
+    ],
+    "cheomseongdae": ["Cheomseongdae observatory in Gyeongju", "첨성대"],
+    "dabotap": ["Dabotap stone pagoda", "다보탑"],
+    "seokgatap": ["Seokgatap stone pagoda", "석가탑"],
+    "daereungwon": ["Daereungwon ancient royal tombs in Gyeongju", "대릉원 고분"],
+    "yeongildae": ["Yeongildae observatory tower in Pohang", "영일대 전망대"],
+    "yeonorang_seonyeo": ["the Yeonorang Seonyeo statue", "연오랑 세오녀 상"],
+    # flags (present 쪽 프롬프트)
+    "sea": ["the sea, ocean water", "바다"],
+    "ground": ["the ground, bare land or soil", "땅, 지면"],
+    "mountain": ["a mountain", "산"],
+    "forest": ["a forest or trees", "숲, 나무"],
+    "river": ["a river or stream", "강, 하천"],
+    "cloud": ["clouds in the sky", "구름"],
+    "sun": ["the sun visible in the sky", "태양"],
+    "bystander": ["bystanders, a crowd of unrelated people", "관중, 지나가는 사람들"],
+    "vehicle": ["a vehicle such as a boat, car or airplane", "탈것(배/차/비행기)"],
+    "structure": [
+        "a man-made structure such as a building, bridge or tower",
+        "인공 구조물(건물/다리/타워)",
+    ],
+}
+
+@lru_cache(maxsize=1)
+def _load_schema() -> dict[str, Any]:
+    with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def _prompts_for(value_id: str) -> list[str]:
+    return PROMPTS.get(value_id, [value_id])
+
+
+# ---------------------------------------------------------------------------
+# CLIP 로더 (lazy singleton)
+# ---------------------------------------------------------------------------
 
 _clip_model: Any | None = None
 _clip_processor: Any | None = None
 _clip_device: Any | None = None
 
 
-def _image_bytes_to_pil(image_bytes: bytes) -> Image.Image:
+def _get_clip() -> tuple[Any, Any, Any]:
+    global _clip_model, _clip_processor, _clip_device
+    if _clip_model is not None:
+        return _clip_model, _clip_processor, _clip_device
+
+    try:
+        import torch
+        from transformers import CLIPModel, CLIPProcessor
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError(
+            "CLIP requires transformers and torch. pip install transformers torch"
+        ) from exc
+
+    model_name = os.environ.get("LANDMARK_CLIP_MODEL", DEFAULT_CLIP_MODEL)
+    _clip_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    _clip_processor = CLIPProcessor.from_pretrained(model_name)
+    _clip_model = CLIPModel.from_pretrained(model_name).to(_clip_device)
+    _clip_model.eval()
+    return _clip_model, _clip_processor, _clip_device
+
+
+# ---------------------------------------------------------------------------
+# 코어: raw 코사인 유사도
+# ---------------------------------------------------------------------------
+# CLIP의 logits_per_image는 logit_scale(~100)이 곱해져 있어 softmax가 사실상
+# hard argmax가 된다(임계값 판정 불가). 그래서 멀티라벨/nullable 판정에는
+# image/text 임베딩의 raw 코사인 유사도(대략 0.15~0.35 범위)를 쓰고 임계로 자른다.
+
+def _cosine_similarities(img: Image.Image, prompts: list[str]) -> np.ndarray:
+    """img와 각 프롬프트의 raw 코사인 유사도(보통 0.15~0.35)를 반환."""
+    import torch
+
+    model, processor, device = _get_clip()
+    inputs = processor(text=prompts, images=[img], return_tensors="pt", padding=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        outputs = model(**inputs)
+        img_feat = outputs.image_embeds  # (1, dim), 투영됨(정규화 전)
+        txt_feat = outputs.text_embeds   # (num_prompts, dim)
+        img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True)
+        txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True)
+        cos = (img_feat @ txt_feat.T)[0]  # (num_prompts,)
+    return cos.detach().cpu().numpy()
+
+
+def _score_group(
+    img: Image.Image,
+    value_ids: list[str],
+    extra_prompts: list[str] | None = None,
+) -> tuple[dict[str, float], float]:
+    """value_ids(+extra_prompts)의 프롬프트를 한 번에 넣고 코사인 유사도 계산.
+
+    각 value_id 점수 = 그 id에 속한 프롬프트들의 코사인 최댓값.
+    반환: (id별 코사인 dict, extra 프롬프트들의 코사인 최댓값)
+    """
+    flat_prompts: list[str] = []
+    owners: list[str] = []
+    for vid in value_ids:
+        for p in _prompts_for(vid):
+            flat_prompts.append(p)
+            owners.append(vid)
+    extra_prompts = extra_prompts or []
+    for p in extra_prompts:
+        flat_prompts.append(p)
+        owners.append("__extra__")
+
+    cos = _cosine_similarities(img, flat_prompts)
+
+    scores = {vid: -1.0 for vid in value_ids}
+    extra_score = -1.0
+    for owner, c in zip(owners, cos):
+        c = float(c)
+        if owner == "__extra__":
+            extra_score = max(extra_score, c)
+        else:
+            scores[owner] = max(scores[owner], c)
+    return scores, extra_score
+
+
+# ---------------------------------------------------------------------------
+# 이미지 유틸
+# ---------------------------------------------------------------------------
+
+def _bytes_to_pil(image_bytes: bytes) -> Image.Image:
     try:
         img = Image.open(io.BytesIO(image_bytes))
         return ImageOps.exif_transpose(img).convert("RGB")
@@ -74,188 +222,108 @@ def _image_bytes_to_pil(image_bytes: bytes) -> Image.Image:
         raise ValueError("Could not read image bytes with PIL.") from exc
 
 
-def _pil_to_png_bytes(img: Image.Image) -> bytes:
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
+def _crop_bbox(img: Image.Image, bbox: list[float]) -> Image.Image:
+    """정규화 xywhn [cx, cy, w, h] -> 픽셀 crop."""
+    cx, cy, w, h = bbox
+    W, H = img.size
+    left = max(0, int((cx - w / 2) * W))
+    top = max(0, int((cy - h / 2) * H))
+    right = min(W, int((cx + w / 2) * W))
+    bottom = min(H, int((cy + h / 2) * H))
+    if right <= left or bottom <= top:
+        return img
+    return img.crop((left, top, right, bottom))
 
 
-def _get_clip() -> tuple[Any, Any, Any, str]:
-    global _clip_model, _clip_processor, _clip_device
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
-    model_name = os.environ.get("LANDMARK_CLIP_MODEL", DEFAULT_CLIP_MODEL)
+def identify_object(image_bytes: bytes, bbox: list[float]) -> dict[str, Any]:
+    """이미지 바이트 + YOLO bbox(정규화 xywhn) -> 박스 내 객체의 랜드마크 식별.
 
-    if _clip_model is not None and _clip_processor is not None and _clip_device is not None:
-        return _clip_model, _clip_processor, _clip_device, model_name
+    후보는 schema.yaml enums.landmark.values. landmark는 nullable이므로
+    negative 프롬프트를 함께 두고, top1이 negative거나 확률이 임계 미만이면 None.
+    """
+    schema = _load_schema()
+    landmark_ids = schema["enums"]["landmark"]["values"]
 
-    try:
-        import torch
-        from transformers import CLIPModel, CLIPProcessor
-    except ImportError as exc:
-        raise RuntimeError("Landmark CLIP requires transformers and torch. Install with: pip install transformers") from exc
+    img = _bytes_to_pil(image_bytes)
+    crop = _crop_bbox(img, bbox)
 
-    _clip_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    _clip_processor = CLIPProcessor.from_pretrained(model_name)
-    _clip_model = CLIPModel.from_pretrained(model_name).to(_clip_device)
-    _clip_model.eval()
-    return _clip_model, _clip_processor, _clip_device, model_name
-
-
-def _run_yolo_crops(img: Image.Image, confidence: float = 0.20) -> tuple[list[dict[str, Any]], Image.Image]:
-    results = yolo_model(img, conf=confidence)
-    result = results[0]
-    annotated_arr = result.plot()
-    annotated_img = Image.fromarray(annotated_arr[..., ::-1])
-
-    width, height = img.size
-    crops: list[dict[str, Any]] = []
-    for index, box in enumerate(result.boxes):
-        x1, y1, x2, y2 = [float(v) for v in box.xyxy[0].tolist()]
-        class_id = int(box.cls[0])
-        conf = float(box.conf[0])
-
-        pad_x = max(4, int((x2 - x1) * 0.08))
-        pad_y = max(4, int((y2 - y1) * 0.08))
-        crop_box = (
-            max(0, int(round(x1)) - pad_x),
-            max(0, int(round(y1)) - pad_y),
-            min(width, int(round(x2)) + pad_x),
-            min(height, int(round(y2)) + pad_y),
-        )
-        if crop_box[2] <= crop_box[0] or crop_box[3] <= crop_box[1]:
-            continue
-
-        crops.append({
-            "id": f"yolo_{index}",
-            "source": "yolo_box",
-            "image": img.crop(crop_box),
-            "yolo_class": yolo_model.names.get(class_id, str(class_id)),
-            "yolo_confidence": conf,
-            "bbox_xyxy": [round(v, 2) for v in [x1, y1, x2, y2]],
-        })
-
-    crops.insert(0, {
-        "id": "full_image",
-        "source": "full_image",
-        "image": img,
-        "yolo_class": None,
-        "yolo_confidence": 1.0,
-        "bbox_xyxy": [0, 0, width, height],
-    })
-    return crops, annotated_img
-
-
-def _flatten_prompts() -> tuple[list[str], list[str]]:
-    prompts: list[str] = []
-    labels: list[str] = []
-    for candidate in LANDMARK_CANDIDATES:
-        for prompt in candidate["prompts"]:
-            prompts.append(prompt)
-            labels.append(candidate["label"])
-    return prompts, labels
-
-
-def _score_crops(crops: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, float], dict[str, Any]]:
-    import torch
-
-    model, processor, device, model_name = _get_clip()
-    prompts, prompt_labels = _flatten_prompts()
-    images = [crop["image"] for crop in crops]
-
-    inputs = processor(
-        text=prompts,
-        images=images,
-        return_tensors="pt",
-        padding=True,
+    scores, negative_score = _score_group(
+        crop, landmark_ids, extra_prompts=_NEGATIVE_LANDMARK_PROMPTS
     )
-    inputs = {key: value.to(device) for key, value in inputs.items()}
 
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = outputs.logits_per_image.softmax(dim=1).detach().cpu().numpy()
+    best_id = max(scores, key=scores.__getitem__)
+    best_score = scores[best_id]
+    landmark = (
+        best_id
+        if (best_score >= LANDMARK_THRESHOLD and best_score >= negative_score + NEG_MARGIN)
+        else None
+    )
 
-    crop_reports: list[dict[str, Any]] = []
-    label_scores = {candidate["label"]: 0.0 for candidate in LANDMARK_CANDIDATES}
-
-    for crop, prompt_probs in zip(crops, probs):
-        per_label: dict[str, float] = {label: 0.0 for label in label_scores}
-        for prompt_label, prob in zip(prompt_labels, prompt_probs):
-            per_label[prompt_label] = max(per_label[prompt_label], float(prob))
-
-        weight = 1.0 if crop["source"] == "full_image" else max(0.2, float(crop["yolo_confidence"]))
-        for label, score in per_label.items():
-            label_scores[label] = max(label_scores[label], score * weight)
-
-        best_label = max(per_label, key=per_label.get)
-        crop_reports.append({
-            "id": crop["id"],
-            "source": crop["source"],
-            "yolo_class": crop["yolo_class"],
-            "yolo_confidence": round(float(crop["yolo_confidence"]), 4),
-            "bbox_xyxy": crop["bbox_xyxy"],
-            "best_label": best_label,
-            "best_score": round(per_label[best_label], 6),
-            "scores": {label: round(score, 6) for label, score in per_label.items()},
-        })
-
-    clip_report = {
-        "model": model_name,
-        "device": str(device),
-        "candidate_labels": [candidate["label"] for candidate in LANDMARK_CANDIDATES],
-        "prompt_count": len(prompts),
-    }
-    return crop_reports, label_scores, clip_report
-
-
-def classify_landmark(image_bytes: bytes) -> tuple[bytes, dict[str, Any]]:
-    img = _image_bytes_to_pil(image_bytes)
-    crops, annotated_img = _run_yolo_crops(img)
-    crop_reports, label_scores, clip_report = _score_crops(crops)
-
-    best_label = max(label_scores, key=label_scores.get)
-    report = {
-        "best_landmark": best_label,
-        "best_score": round(label_scores[best_label], 6),
-        "scores": {label: round(score, 6) for label, score in label_scores.items()},
-        "clip": clip_report,
-        "yolo": {
-            "model": "models.yolo._model",
-            "crop_count": len(crops),
-            "detected_boxes": max(0, len(crops) - 1),
-        },
-        "crops": crop_reports,
-    }
-
-    return _pil_to_png_bytes(annotated_img), report
-
-
-_NEGATIVE_LABELS = ["a person", "a tree", "a building", "a random object", "nothing notable"]
-_THRESHOLD = 0.5
-_MARGIN = 0.1
-
-
-def classify_pil(img: Image.Image, candidate_labels: list[str]) -> dict[str, Any]:
-    import torch
-
-    all_labels = candidate_labels + _NEGATIVE_LABELS
-    model, processor, device, _ = _get_clip()
-    inputs = processor(text=all_labels, images=[img], return_tensors="pt", padding=True)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    with torch.no_grad():
-        probs = model(**inputs).logits_per_image.softmax(dim=1)[0].detach().cpu().numpy()
-
-    scores = {label: round(float(p), 6) for label, p in zip(all_labels, probs)}
-    ranked = sorted(scores, key=scores.__getitem__, reverse=True)
-    top1 = ranked[0]
-    top2 = ranked[1] if len(ranked) > 1 else None
-    is_negative = top1 in _NEGATIVE_LABELS
-    gap = scores[top1] - (scores[top2] if top2 else 0.0)
-
-    landmark = None if (is_negative or scores[top1] < _THRESHOLD or gap < _MARGIN) else top1
     return {
-        "best_label": top1,
-        "best_score": scores[top1],
-        "is_negative": is_negative,
         "landmark": landmark,
-        "scores": scores,
+        "best_score": round(best_score, 6),
+        "scores": {k: round(v, 6) for k, v in scores.items()},
     }
+
+
+def tag_image(image_bytes: bytes) -> dict[str, Any]:
+    """전체 이미지를 보고 schema.yaml 형식으로 태깅.
+
+    person_count는 CLIP으로 세지 않으므로 None. 나머지 전부 채운다.
+    """
+    schema = _load_schema()
+    img = _bytes_to_pil(image_bytes)
+
+    result: dict[str, Any] = {}
+
+    # fields: required 단일 선택 (argmax)
+    for field, spec in schema.get("fields", {}).items():
+        scores, _ = _score_group(img, spec["values"])
+        result[field] = max(scores, key=scores.__getitem__)
+
+    # counts: CLIP 미지원
+    for count in schema.get("counts", {}):
+        result[count] = None
+
+    # flags: 멀티라벨. present/absent 최소쌍의 코사인 차이가 FLAG_MARGIN 이상이면 붙인다.
+    # (프롬프트 baseline이 상쇄되어 플래그 간 비교 가능. 신호는 약해 실데이터 보정 권장.)
+    flag_ids = list(schema.get("flags", {}).keys())
+    if flag_ids:
+        prompts: list[str] = []
+        for f in flag_ids:
+            noun = _FLAG_NOUNS.get(f, f)
+            prompts.append(_FLAG_PRESENT.format(noun=noun))
+            prompts.append(_FLAG_ABSENT.format(noun=noun))
+        cos = _cosine_similarities(img, prompts)  # 한 번에 계산
+        result["flags"] = [
+            f for i, f in enumerate(flag_ids)
+            if float(cos[2 * i] - cos[2 * i + 1]) >= FLAG_MARGIN
+        ]
+    else:
+        result["flags"] = []
+
+    # enums: nullable 단일 선택 (argmax + 코사인 임계)
+    for enum_name, spec in schema.get("enums", {}).items():
+        value_ids = spec["values"]
+        if enum_name == "landmark":
+            scores, negative_score = _score_group(
+                img, value_ids, extra_prompts=_NEGATIVE_LANDMARK_PROMPTS
+            )
+            threshold = TAG_LANDMARK_THRESHOLD
+        else:
+            scores, negative_score = _score_group(img, value_ids)
+            threshold = FACING_THRESHOLD if enum_name == "facing" else 0.0
+
+        best_id = max(scores, key=scores.__getitem__)
+        best_score = scores[best_id]
+        nullable = spec.get("nullable", False)
+        if nullable and (best_score < threshold or best_score < negative_score + NEG_MARGIN):
+            result[enum_name] = None
+        else:
+            result[enum_name] = best_id
+
+    return result

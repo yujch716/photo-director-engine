@@ -1,7 +1,0 @@
-# Synthetic YOLO dataset for detecting YouTube-like logo overlays.
-# Put this folder at data/logo_yolo so logo_yolo_train.py can find it.
-path: data/logo_yolo
-train: images/train
-val: images/val
-names:
-  0: youtube_logo

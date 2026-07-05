@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import json
 import pathlib
@@ -6,7 +8,7 @@ from typing import Any
 
 from PIL import Image
 
-from models.landmark_clip import classify_pil
+from models.landmark_clip import identify_object, tag_image
 from services.kakao_places import get_landmarks_by_keyword
 
 TEST_DATA_DIR = pathlib.Path("drone-data")
@@ -36,6 +38,12 @@ def process_capture(
     nearby_places = get_landmarks_by_keyword(lat, lng) if lat is not None and lng is not None else []
     nearby_names = [p["name"] for p in nearby_places]
 
+    # 전체 이미지 태깅 (schema.yaml 형식)
+    try:
+        tags = tag_image(image_bytes)
+    except Exception:
+        tags = None
+
     results = []
     if target_list:
         img = base_img
@@ -57,7 +65,7 @@ def process_capture(
             confidence = None
             scores = None
             try:
-                clip_result = classify_pil(crop, nearby_names)
+                clip_result = identify_object(image_bytes, t["bbox"])
                 landmark = clip_result["landmark"]
                 confidence = clip_result["best_score"]
                 scores = clip_result["scores"]
@@ -77,6 +85,7 @@ def process_capture(
         "location": {"lat": lat, "lng": lng},
         "nearby_landmarks": nearby_places,
         "candidate_labels": nearby_names,
+        "tags": tags,
         "targets": target_list,
         # original_2x.jpg가 원본에서 잘라낸 영역(중앙 절반)의 픽셀 좌표
         "original_2x": {
@@ -95,5 +104,6 @@ def process_capture(
         "saved": name,
         "location": {"lat": lat, "lng": lng},
         "nearby_landmarks": nearby_places,
+        "tags": tags,
         "results": results,
     }
