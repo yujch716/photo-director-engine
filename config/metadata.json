@@ -1,0 +1,2204 @@
+[
+  {
+    "id": 0,
+    "path": "ver_1/1.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 1,
+    "path": "ver_1/10.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 2,
+    "path": "ver_1/100.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 6,
+    "flags": [
+      "sea",
+      "ground",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 3,
+    "path": "ver_1/101.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 4,
+    "path": "ver_1/102.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 5,
+    "path": "ver_1/103.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 6,
+    "path": "ver_1/104.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 7,
+    "path": "ver_1/105.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 8,
+    "path": "ver_1/106.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 9,
+    "path": "ver_1/107.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 10,
+    "path": "ver_1/108.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 11,
+    "path": "ver_1/109.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 12,
+    "path": "ver_1/11.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 13,
+    "path": "ver_1/110.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 14,
+    "path": "ver_1/111.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 15,
+    "path": "ver_1/112.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 16,
+    "path": "ver_1/113.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 17,
+    "path": "ver_1/114.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "sun"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 18,
+    "path": "ver_1/115.jpg",
+    "time": "evening",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 19,
+    "path": "ver_1/116.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 20,
+    "path": "ver_1/117.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 21,
+    "path": "ver_1/118.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 22,
+    "path": "ver_1/119.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 23,
+    "path": "ver_1/12.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 24,
+    "path": "ver_1/120.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 25,
+    "path": "ver_1/121.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 26,
+    "path": "ver_1/122.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 27,
+    "path": "ver_1/123.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 28,
+    "path": "ver_1/124.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 29,
+    "path": "ver_1/125.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 30,
+    "path": "ver_1/126.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 31,
+    "path": "ver_1/127.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 32,
+    "path": "ver_1/128.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 33,
+    "path": "ver_1/129.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 34,
+    "path": "ver_1/13.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 35,
+    "path": "ver_1/130.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 36,
+    "path": "ver_1/131.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 37,
+    "path": "ver_1/132.png",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 38,
+    "path": "ver_1/133.png",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 39,
+    "path": "ver_1/134.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 11,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 40,
+    "path": "ver_1/135.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 41,
+    "path": "ver_1/136.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 42,
+    "path": "ver_1/137.png",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 43,
+    "path": "ver_1/138.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 44,
+    "path": "ver_1/139.png",
+    "time": "evening",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 45,
+    "path": "ver_1/14.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 46,
+    "path": "ver_1/140.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 47,
+    "path": "ver_1/141.png",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 48,
+    "path": "ver_1/142.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 49,
+    "path": "ver_1/143.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 50,
+    "path": "ver_1/144.png",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 51,
+    "path": "ver_1/145.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 52,
+    "path": "ver_1/146.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 53,
+    "path": "ver_1/15.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 54,
+    "path": "ver_1/16.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 55,
+    "path": "ver_1/17.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 56,
+    "path": "ver_1/18.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 57,
+    "path": "ver_1/19.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "vehicle",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 58,
+    "path": "ver_1/2.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 59,
+    "path": "ver_1/20.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "mountain",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 60,
+    "path": "ver_1/21.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 61,
+    "path": "ver_1/22.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 62,
+    "path": "ver_1/23.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 63,
+    "path": "ver_1/24.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "side",
+    "landmark": null
+  },
+  {
+    "id": 64,
+    "path": "ver_1/25.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 65,
+    "path": "ver_1/26.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 66,
+    "path": "ver_1/27.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 67,
+    "path": "ver_1/28.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 68,
+    "path": "ver_1/29.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "structure",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 69,
+    "path": "ver_1/3.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 70,
+    "path": "ver_1/30.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 71,
+    "path": "ver_1/31.jpeg",
+    "time": "evening",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "sun"
+    ],
+    "facing": "side",
+    "landmark": null
+  },
+  {
+    "id": 72,
+    "path": "ver_1/32.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 73,
+    "path": "ver_1/33.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 74,
+    "path": "ver_1/34.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 75,
+    "path": "ver_1/35.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 76,
+    "path": "ver_1/36.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 77,
+    "path": "ver_1/37.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 78,
+    "path": "ver_1/38.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 79,
+    "path": "ver_1/39.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 80,
+    "path": "ver_1/4.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 81,
+    "path": "ver_1/40.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 82,
+    "path": "ver_1/41.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 83,
+    "path": "ver_1/42.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "bystander",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 84,
+    "path": "ver_1/43.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 85,
+    "path": "ver_1/44.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 86,
+    "path": "ver_1/45.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 87,
+    "path": "ver_1/46.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 88,
+    "path": "ver_1/47.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 5,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 89,
+    "path": "ver_1/48.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 90,
+    "path": "ver_1/49.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 91,
+    "path": "ver_1/5.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 92,
+    "path": "ver_1/50.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 93,
+    "path": "ver_1/51.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "back",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 94,
+    "path": "ver_1/52.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 95,
+    "path": "ver_1/53.jpg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "bystander",
+      "vehicle",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 96,
+    "path": "ver_1/54.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "ground",
+      "vehicle"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 97,
+    "path": "ver_1/55.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 6,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 98,
+    "path": "ver_1/56.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 99,
+    "path": "ver_1/57.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 9,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 100,
+    "path": "ver_1/58.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 101,
+    "path": "ver_1/59.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 102,
+    "path": "ver_1/6.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 103,
+    "path": "ver_1/60.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "sun",
+      "bystander"
+    ],
+    "facing": "side",
+    "landmark": null
+  },
+  {
+    "id": 104,
+    "path": "ver_1/61.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 105,
+    "path": "ver_1/62.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 106,
+    "path": "ver_1/63.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 107,
+    "path": "ver_1/64.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 108,
+    "path": "ver_1/65.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 109,
+    "path": "ver_1/66.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 110,
+    "path": "ver_1/67.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 111,
+    "path": "ver_1/68.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 112,
+    "path": "ver_1/69.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 113,
+    "path": "ver_1/7.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 114,
+    "path": "ver_1/70.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 115,
+    "path": "ver_1/71.png",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "side",
+    "landmark": null
+  },
+  {
+    "id": 116,
+    "path": "ver_1/72.png",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 117,
+    "path": "ver_1/73.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 118,
+    "path": "ver_1/74.png",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "back",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 119,
+    "path": "ver_1/75.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 120,
+    "path": "ver_1/76.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 121,
+    "path": "ver_1/77.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "back",
+    "landmark": null
+  },
+  {
+    "id": 122,
+    "path": "ver_1/78.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 123,
+    "path": "ver_1/79.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 124,
+    "path": "ver_1/8.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 125,
+    "path": "ver_1/80.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 126,
+    "path": "ver_1/81.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "back",
+    "landmark": null
+  },
+  {
+    "id": 127,
+    "path": "ver_1/82.jpeg",
+    "time": "night",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "back",
+    "landmark": null
+  },
+  {
+    "id": 128,
+    "path": "ver_1/83.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 129,
+    "path": "ver_1/84.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 130,
+    "path": "ver_1/85.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 131,
+    "path": "ver_1/86.jpeg",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 132,
+    "path": "ver_1/87.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 133,
+    "path": "ver_1/88.jpeg",
+    "time": "evening",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 134,
+    "path": "ver_1/89.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 3,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 135,
+    "path": "ver_1/9.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 136,
+    "path": "ver_1/90.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 4,
+    "flags": [
+      "sea",
+      "ground",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 137,
+    "path": "ver_1/91.png",
+    "time": "day",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 138,
+    "path": "ver_1/92.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 8,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "bystander",
+      "structure"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 139,
+    "path": "ver_1/93.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  {
+    "id": 140,
+    "path": "ver_1/94.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 2,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander",
+      "structure"
+    ],
+    "facing": "side",
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 141,
+    "path": "ver_1/95.jpeg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud",
+      "sun",
+      "bystander"
+    ],
+    "facing": "side",
+    "landmark": null
+  },
+  {
+    "id": 142,
+    "path": "ver_1/96.jpg",
+    "time": "evening",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "mountain",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": null
+  },
+  {
+    "id": 143,
+    "path": "ver_1/97.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "ground",
+      "cloud"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 144,
+    "path": "ver_1/98.jpg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  },
+  {
+    "id": 145,
+    "path": "ver_1/99.jpeg",
+    "time": "day",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 0,
+    "flags": [
+      "sea",
+      "structure"
+    ],
+    "facing": null,
+    "landmark": "hands_of_harmony"
+  }
+]

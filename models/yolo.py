@@ -14,6 +14,8 @@ def run_yolo(image_bytes: bytes) -> list[dict]:
     detections = []
     for box in results[0].boxes:
         cls_name = _model.names[int(box.cls[0])]
+        if cls_name not in PERSON_CLASSES:
+            continue
         detections.append({
             "class": cls_name,
             "is_person": cls_name in PERSON_CLASSES,

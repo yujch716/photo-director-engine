@@ -270,13 +270,27 @@ def identify_object(image_bytes: bytes, bbox: list[float]) -> dict[str, Any]:
     }
 
 
+def ensure_loaded() -> None:
+    """CLIP 모델과 schema를 미리 로드한다.
+
+    여러 후보를 스레드로 병렬 태깅하기 전에 1회 호출하면
+    lazy singleton 초기화 레이스를 피할 수 있다.
+    """
+    _get_clip()
+    _load_schema()
+
+
 def tag_image(image_bytes: bytes) -> dict[str, Any]:
-    """전체 이미지를 보고 schema.yaml 형식으로 태깅.
+    """전체 이미지 바이트를 보고 schema.yaml 형식으로 태깅."""
+    return tag_pil(_bytes_to_pil(image_bytes))
+
+
+def tag_pil(img: Image.Image) -> dict[str, Any]:
+    """PIL 이미지를 schema.yaml 형식으로 태깅 (tag_image의 코어).
 
     person_count는 CLIP으로 세지 않으므로 None. 나머지 전부 채운다.
     """
     schema = _load_schema()
-    img = _bytes_to_pil(image_bytes)
 
     result: dict[str, Any] = {}
 

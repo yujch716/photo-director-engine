@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import pathlib
 
 from dotenv import load_dotenv
@@ -27,6 +28,14 @@ DRONE_DATA_DIR.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/drone-data", StaticFiles(directory="drone-data"), name="drone-data")
 
+# reference(임베딩 원본) 이미지 폴더가 있으면 /refimages로 서빙한다.
+# metadata.json의 path(예: "ver_1/50.jpeg")가 이 폴더 기준 상대경로.
+# 폴더가 없으면 마운트하지 않음(뷰어는 안내 문구만 표시).
+REFERENCE_IMAGES_DIR = pathlib.Path(os.environ.get("REFERENCE_IMAGES_DIR", "reference_images"))
+if REFERENCE_IMAGES_DIR.is_dir():
+    app.mount("/refimages", StaticFiles(directory=str(REFERENCE_IMAGES_DIR)), name="refimages")
+    print(f"[INFO] reference images mounted: /refimages -> {REFERENCE_IMAGES_DIR}")
+
 # API Test 페이지
 @app.get("/")
 def index():
@@ -50,11 +59,15 @@ def get_capture(name: str):
         p.name for p in folder.iterdir()
         if p.suffix.lower() in {".jpg", ".jpeg", ".png"}
     )
+    # 원본 1x: "1x"가 든 파일 우선, 없으면 crop/2x/best가 아닌 첫 이미지
     original = next(
-        (f for f in images if "crop" not in f.lower() and "2x" not in f.lower()), None
+        (f for f in images if "1x" in f.lower()), None
+    ) or next(
+        (f for f in images if all(k not in f.lower() for k in ("crop", "2x", "best"))), None
     )
     original_2x = next((f for f in images if "2x" in f.lower()), None)
     crops = [f for f in images if "crop" in f.lower()]
+    best = "best.jpg" if "best.jpg" in images else None
 
     result = None
     result_path = folder / "result.json"
@@ -66,6 +79,7 @@ def get_capture(name: str):
         "original": original,
         "original_2x": original_2x,
         "crops": crops,
+        "best": best,
         "result": result,
     }
 
@@ -73,7 +87,7 @@ def get_capture(name: str):
 @app.post("/detect-image")
 async def detect_image(image: UploadFile):
     contents = await image.read()
-    detections = run_yolo(contents) + run_yolo_world(contents) + run_homigot_hand_yolo(contents)
+    detections = run_yolo(contents) + run_homigot_hand_yolo(contents)
     return {"detections": detections}
 
 @app.post("/nima-score")

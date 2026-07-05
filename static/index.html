@@ -143,6 +143,17 @@
       <div class="error" id="captures-error"></div>
 
       <div id="captures-detail" style="display:none;">
+        <h3 style="margin-top:12px;">최종 구도 시각화</h3>
+        <div class="panel" style="margin-bottom:24px;">
+          <div class="image-frame" style="background:#0b1020;">
+            <canvas id="captures-overlay" style="display:block;width:100%;height:auto;"></canvas>
+          </div>
+          <div id="captures-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
+        </div>
+
+        <h3 style="margin-top:12px;">최종 구도 상세 (태그 · 매칭 reference)</h3>
+        <div id="captures-best" class="panel" style="margin-bottom:24px;"></div>
+
         <h3 style="margin-top:12px;">이미지</h3>
         <div id="captures-images" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px;"></div>
 

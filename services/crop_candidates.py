@@ -26,7 +26,7 @@ class Candidate:
     source_box: tuple[int, int, int, int]  # 1x 원본 좌표계
     coord_score: float = 0.0
     coord_results: list[dict[str, Any]] | None = None
-    cls: np.ndarray | None = None
+    tags: dict[str, Any] | None = None  # 후보 crop을 CLIP으로 태깅한 결과
     patches: np.ndarray | None = None
     best_ref: str | None = None
     best_ref_index: int | None = None

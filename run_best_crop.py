@@ -15,11 +15,10 @@ from services.best_crop import select_best_crop
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--input-dir", type=Path, default=Path("/data/MyGit/photo-director-engine/drone-data/20260702_222942_010"))
-    parser.add_argument("--output-dir", type=Path, default=Path("/data/MyGit/photo-director-engine/drone-data/20260702_222942_010_result"))
-    parser.add_argument("--general-embedding-dir", type=Path, default=Path("/data/MyGit/photo-director-engine/imbeddingdata/dinov2imbedding"))
-    parser.add_argument("--hand-embedding-dir", type=Path, default=Path("/data/MyGit/photo-director-engine/imbeddingdata/hand_dinov2imbedding"))
-    parser.add_argument("--embedding-dir", type=Path, default=None)  # 수동 override용
+    parser.add_argument("--input-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    # 단일 patch 임베딩 DB. 기본값 None → config/ 아래에서 읽는다.
+    parser.add_argument("--bank-dir", type=Path, default=None)
 
     parser.add_argument("--zoom-ratio", type=float, default=2.0)
     parser.add_argument("--cols", type=int, default=8)
@@ -31,7 +30,14 @@ def parse_args():
     parser.add_argument("--fallback-topk", type=int, default=12)
 
     parser.add_argument("--dino-batch-size", type=int, default=16)
-    parser.add_argument("--patch-topk", type=int, default=20)
+    parser.add_argument("--dino-chunk-size", type=int, default=64)
+    # 2단계 검색: 코스 벡터로 상위 K개만 추린 뒤 patch 정밀 비교 (K>=N이면 추림 없음)
+    parser.add_argument("--dino-shortlist-k", type=int, default=200)
+    # 태그 가중치. 0이면 순수 patch 매칭. 최종점수 = patch_sim + tag_weight*tag_bonus
+    parser.add_argument("--tag-weight", type=float, default=0.3)
+    # 필수 태그(top-k 전 하드 필터). 미지정→기본(landmark location person_count),
+    # "--required-tags" 만 주면 빈 리스트→필터 끔. 통과 0개면 자동으로 전체 사용.
+    parser.add_argument("--required-tags", nargs="*", default=None)
 
     parser.add_argument("--save-candidates", action="store_true")
 
@@ -44,9 +50,7 @@ def main():
     select_best_crop(
         input_dir=args.input_dir,
         output_dir=args.output_dir,
-        general_embedding_dir=args.general_embedding_dir,
-        hand_embedding_dir=args.hand_embedding_dir,
-        embedding_dir=args.embedding_dir,
+        bank_dir=args.bank_dir,
         zoom_ratio=args.zoom_ratio,
         cols=args.cols,
         rows=args.rows,
@@ -55,7 +59,10 @@ def main():
         selected_require=args.selected_require,
         fallback_topk=args.fallback_topk,
         dino_batch_size=args.dino_batch_size,
-        patch_topk=args.patch_topk,
+        dino_chunk_size=args.dino_chunk_size,
+        dino_shortlist_k=args.dino_shortlist_k,
+        tag_weight=args.tag_weight,
+        required_tags=args.required_tags,
         save_all_candidates=args.save_candidates,
     )
 

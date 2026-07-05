@@ -238,7 +238,7 @@ async function loadCaptureList() {
   }
 }
 
-function renderCaptureImages(name, original, original2x, crops, result) {
+function renderCaptureImages(name, original, original2x, crops, best, result) {
   const wrap = document.getElementById('captures-images');
   const card = (title, file, extra = '') => `
     <div class="panel" style="width:280px;">
@@ -259,8 +259,148 @@ function renderCaptureImages(name, original, original2x, crops, result) {
       : '';
     html += card('Original (2x)', original2x, coords);
   }
+  if (best) {
+    const bb = (result && result.best && result.best.source_box_in_1x) || null;
+    const coords = bb
+      ? `<div class="score-meta mono" style="margin-top:4px;">구도 좌표: [${bb.join(', ')}]</div>`
+      : '';
+    html += card('★ 최종 구도 (best)', best, coords);
+  }
   crops.forEach((f, i) => { html += card(`Crop ${i}`, f); });
   wrap.innerHTML = html || '<p style="color:#6b7280;">이미지 없음</p>';
+}
+
+function renderCaptureOverlay(name, original, result) {
+  const canvas = document.getElementById('captures-overlay');
+  const legend = document.getElementById('captures-overlay-legend');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  legend.innerHTML = '';
+
+  if (!original) { legend.textContent = '원본 이미지 없음'; return; }
+
+  const box2x = result && result.original_2x;         // {left, top, right, bottom}
+  const best = result && result.best;                  // {source_box_in_1x: [l,t,r,b], ...}
+  const bestBox = best && best.source_box_in_1x;       // [l, t, r, b]
+  const offset = result && result.drone_offset;
+
+  const img = new Image();
+  img.onload = () => {
+    const W = img.naturalWidth, H = img.naturalHeight;
+    canvas.width = W;
+    canvas.height = H;                                 // 원본 해상도로 그리고 CSS가 100% 폭으로 축소
+    ctx.drawImage(img, 0, 0, W, H);
+
+    const lw = Math.max(2, Math.round(W / 320));
+    const fs = Math.max(14, Math.round(W / 42));
+
+    const drawBox = (coords, color, label) => {
+      if (!coords) return;
+      const [l, t, r, b] = coords;
+      ctx.lineWidth = lw;
+      ctx.strokeStyle = color;
+      ctx.strokeRect(l, t, r - l, b - t);
+      ctx.font = `bold ${fs}px sans-serif`;
+      const tw = ctx.measureText(label).width;
+      const th = fs + 8;
+      const ty = t >= th ? t - th : t;                 // 위 공간 없으면 박스 안쪽
+      ctx.fillStyle = color;
+      ctx.fillRect(l, ty, tw + 12, th);
+      ctx.fillStyle = '#fff';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, l + 6, ty + th / 2);
+    };
+
+    drawBox(box2x ? [box2x.left, box2x.top, box2x.right, box2x.bottom] : null, '#3b82f6', '2배율(중앙)');
+    drawBox(bestBox, '#22c55e', '최종 구도');
+
+    // 이미지 중심 → best 중심 이동 화살표 + 중심점
+    if (bestBox) {
+      const [l, t, r, b] = bestBox;
+      const bcx = (l + r) / 2, bcy = (t + b) / 2, icx = W / 2, icy = H / 2;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(icx, icy);
+      ctx.lineTo(bcx, bcy);
+      ctx.stroke();
+      const dot = (x, y, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, lw * 2.2, 0, Math.PI * 2); ctx.fill(); };
+      dot(icx, icy, '#3b82f6');
+      dot(bcx, bcy, '#22c55e');
+    }
+
+    const items = ['<span style="color:#3b82f6;">■</span> 2배율(중앙) 박스'];
+    if (bestBox) items.push('<span style="color:#22c55e;">■</span> 최종 구도 박스');
+    if (offset) {
+      const num = (v, d = 1) => (typeof v === 'number' ? v.toFixed(d) : v);
+      // 극좌표(대각선 단일 이동)를 주로, dx/dy는 보조로 표기. 구버전 캡처는 dr/theta 없음.
+      const polar = (offset.dr != null && offset.theta_deg != null)
+        ? `dr=${num(offset.dr)}px, θ=${num(offset.theta_deg)}° (0°=오른쪽, 반시계) · `
+        : '';
+      items.push(`<span style="color:#f59e0b;">→</span> 드론 이동: ${polar}dx=${offset.dx}, dy=${offset.dy}`);
+    }
+    if (!bestBox) items.push('<span style="color:#b91c1c;">최종 구도 없음</span> (임베딩 DB 없음/매칭 실패)');
+    legend.innerHTML = items.join(' &nbsp;&nbsp; ');
+  };
+  img.onerror = () => { legend.textContent = '원본 이미지를 불러오지 못했습니다.'; };
+  img.src = `/drone-data/${name}/${original}`;
+}
+
+function tagsTable(tags) {
+  if (!tags) return '<p style="color:#6b7280;">태그 없음</p>';
+  const row = (k, v) => `<tr><td class="mono">${k}</td><td>${v == null ? '<span style="color:#b91c1c;">null</span>' : v}</td></tr>`;
+  const flags = Array.isArray(tags.flags) ? tags.flags.join(', ') : (tags.flags ?? '');
+  return `<table><tbody>
+    ${row('landmark', tags.landmark)}
+    ${row('location', tags.location)}
+    ${row('time', tags.time)}
+    ${row('weather', tags.weather)}
+    ${row('facing', tags.facing)}
+    ${row('person_count', tags.person_count)}
+    ${row('flags', flags)}
+  </tbody></table>`;
+}
+
+function renderCaptureBest(result) {
+  const el = document.getElementById('captures-best');
+  const best = result && result.best;
+  if (!best) {
+    el.innerHTML = '<p style="color:#6b7280;">최종 구도 없음 (임베딩 DB 없음/매칭 실패 시)</p>';
+    return;
+  }
+  const sim = typeof best.similarity === 'number' ? best.similarity.toFixed(4) : best.similarity;
+  const refPath = best.reference || '(없음)';
+  // reference 실제 사진: /refimages 로 시도, 없으면 숨기고 안내
+  const refImg = best.reference
+    ? `<img src="/refimages/${best.reference}" alt="reference"
+           style="max-width:260px;border:1px solid #dde3ed;border-radius:6px;display:none;"
+           onload="this.style.display='block';this.nextElementSibling.style.display='none';"
+           onerror="this.style.display='none';" />
+       <div class="score-meta" style="color:#6b7280;">reference 원본 이미지 없음 (임베딩·메타만 보유). ver_1/ 사진 폴더를 /refimages로 붙이면 표시됩니다.</div>`
+    : '';
+
+  el.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:24px;">
+      <div style="min-width:240px;">
+        <div class="metric-title" style="font-size:13px;">① 최종 구도(선택된 크롭)의 태그</div>
+        ${tagsTable(best.candidate_tags)}
+      </div>
+      <div style="min-width:240px;">
+        <div class="metric-title" style="font-size:13px;">② 유사도로 매칭된 reference (.npy)</div>
+        <table><tbody>
+          <tr><td class="mono">reference</td><td class="mono">${refPath}</td></tr>
+          <tr><td class="mono">similarity</td><td>${sim}</td></tr>
+          <tr><td class="mono">candidate_index</td><td>${best.candidate_index ?? '-'}</td></tr>
+        </tbody></table>
+        <div class="metric-title" style="font-size:13px;margin-top:8px;">reference 태그</div>
+        ${tagsTable(best.reference_tags)}
+      </div>
+      <div style="min-width:240px;">
+        <div class="metric-title" style="font-size:13px;">reference 원본 이미지</div>
+        ${refImg}
+      </div>
+    </div>
+  `;
 }
 
 function renderCaptureMeta(result) {
@@ -330,7 +470,9 @@ async function loadCaptureDetail(name) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
 
-    renderCaptureImages(data.name, data.original, data.original_2x, data.crops, data.result);
+    renderCaptureOverlay(data.name, data.original, data.result);
+    renderCaptureImages(data.name, data.original, data.original_2x, data.crops, data.best, data.result);
+    renderCaptureBest(data.result);
     renderCaptureMeta(data.result);
     renderCaptureResults(data.result);
     detail.style.display = 'block';
