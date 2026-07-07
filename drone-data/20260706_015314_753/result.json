@@ -1,0 +1,112 @@
+{
+  "location": {
+    "lat": null,
+    "lng": null
+  },
+  "nearby_landmarks": [],
+  "candidate_labels": [],
+  "tags": {
+    "time": "evening",
+    "weather": "rain",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "mountain",
+      "river",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": "hands_of_harmony"
+  },
+  "targets": [
+    {
+      "class": "person",
+      "bbox": [
+        0.6527000069618225,
+        0.5662999749183655,
+        0.09269999712705612,
+        0.2777999937534332
+      ]
+    }
+  ],
+  "original_2x": {
+    "left": 360,
+    "top": 270,
+    "right": 1080,
+    "bottom": 810
+  },
+  "results": [
+    {
+      "class": "person",
+      "bbox": [
+        0.6527000069618225,
+        0.5662999749183655,
+        0.09269999712705612,
+        0.2777999937534332
+      ],
+      "bbox_pixel": {
+        "left": 873,
+        "top": 461,
+        "right": 1006,
+        "bottom": 761
+      },
+      "landmark": "cheomseongdae",
+      "confidence": 0.241005,
+      "scores": {
+        "hands_of_harmony": 0.233493,
+        "cheomseongdae": 0.241005,
+        "dabotap": 0.221583,
+        "seokgatap": 0.231768,
+        "daereungwon": 0.223904,
+        "yeongildae": 0.234132,
+        "yeonorang_seonyeo": 0.235456
+      }
+    }
+  ],
+  "best": {
+    "path": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260706_015314_753/best.jpg",
+    "candidate_index": 29,
+    "source_box_in_1x": [
+      514,
+      324,
+      1234,
+      864
+    ],
+    "similarity": 0.5984857678413391,
+    "reference": "ver_1/72.png",
+    "reference_index": 116,
+    "reference_tags": {
+      "id": 116,
+      "path": "ver_1/72.png",
+      "time": "day",
+      "weather": "clear",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [
+        "sea",
+        "ground",
+        "structure"
+      ],
+      "facing": "front",
+      "landmark": "hands_of_harmony"
+    },
+    "candidate_tags": {
+      "time": "evening",
+      "weather": "rain",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [],
+      "facing": "front",
+      "landmark": "hands_of_harmony"
+    }
+  },
+  "drone_offset": {
+    "dx": 154.0,
+    "dy": 54.0,
+    "dx_norm": 0.10694444444444444,
+    "dy_norm": 0.05,
+    "dr": 163.19313711060278,
+    "dr_norm": 0.1133285674379186,
+    "theta_deg": -19.323184318161783
+  }
+}

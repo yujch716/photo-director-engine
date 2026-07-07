@@ -335,7 +335,7 @@ function renderCaptureOverlay(name, original, result) {
       const num = (v, d = 1) => (typeof v === 'number' ? v.toFixed(d) : v);
       // 극좌표(대각선 단일 이동)를 주로, dx/dy는 보조로 표기. 구버전 캡처는 dr/theta 없음.
       const polar = (offset.dr != null && offset.theta_deg != null)
-        ? `dr=${num(offset.dr)}px, θ=${num(offset.theta_deg)}° (0°=오른쪽, 반시계) · `
+        ? `dr=${num(offset.dr)}px, θ=${num(offset.theta_deg)}° (화면좌표: 0°=오른쪽, +90°=아래) · `
         : '';
       items.push(`<span style="color:#f59e0b;">→</span> 드론 이동: ${polar}dx=${offset.dx}, dy=${offset.dy}`);
     }

@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "input_dir": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374",
+  "output_dir": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374",
+  "image_1x": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374/original_1x.jpg",
+  "image_2x": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374/original_2x.jpg",
+  "json": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374/result.json",
+  "boxes": [
+    {
+      "class": "person",
+      "box": [
+        248.0,
+        545.0,
+        489.0,
+        1079.0
+      ],
+      "source": "results[0].bbox_pixel"
+    }
+  ],
+  "reference_bank_dir": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/config",
+  "zoom_ratio": 2.0,
+  "candidate_total": 48,
+  "candidate_after_filter": 9,
+  "filter_status": "strict",
+  "contain_thres": 0.9,
+  "edge_margin_ratio": 0.0,
+  "selected_require": "all",
+  "best": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260707_031528_374/best.jpg",
+  "best_candidate_index": 40,
+  "best_source_box_in_1x": [
+    0,
+    540,
+    720,
+    1080
+  ],
+  "best_coord_score": 1.0,
+  "best_coord_results": [
+    {
+      "class": "person",
+      "original_target_box": [
+        248.0,
+        545.0,
+        489.0,
+        1079.0
+      ],
+      "required_box_for_filter": [
+        248.0,
+        545.0,
+        489.0,
+        865.4
+      ],
+      "candidate_box": [
+        0,
+        540,
+        720,
+        1080
+      ],
+      "containment": 1.0,
+      "edge_ok": true,
+      "ok": true,
+      "note": "person lower body may be cut"
+    }
+  ],
+  "best_reference": "ver_1/82.jpeg",
+  "best_reference_index": 127,
+  "best_score": 0.5172738432884216,
+  "tag_weighting": true,
+  "tag_weight": 0.3,
+  "required_tags": [
+    "landmark",
+    "location",
+    "person_count"
+  ],
+  "required_filter_kept": 71,
+  "capture_tags": {
+    "time": "night",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "forest"
+    ],
+    "facing": "mixed",
+    "landmark": null
+  },
+  "best_candidate_tags": {
+    "time": "night",
+    "weather": "rain",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [],
+    "facing": "mixed",
+    "landmark": null
+  },
+  "best_reference_tags": {
+    "id": 127,
+    "path": "ver_1/82.jpeg",
+    "time": "night",
+    "weather": "cloudy",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "sea",
+      "cloud"
+    ],
+    "facing": "back",
+    "landmark": null
+  }
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import io
 import json
 import pathlib
@@ -54,6 +55,7 @@ def _run_best_crop_pipeline(
         "source_box_in_1x": report.get("best_source_box_in_1x"),
         "similarity": report.get("best_score"),
         "reference": report.get("best_reference"),
+        "reference_index": report.get("best_reference_index"),
         "reference_tags": report.get("best_reference_tags"),
         "candidate_tags": report.get("best_candidate_tags"),
     }
@@ -178,10 +180,20 @@ def process_capture(
     # HTTP 응답은 드론이 실제로 쓰는 것만 슬림하게 반환한다.
     # (location/nearby_landmarks/tags/results/reference 태그 등 상세는 result.json에 다 저장돼 있고
     #  /captures/{saved} 로 언제든 조회 가능)
+    # best 이미지(best.jpg)를 base64(JPEG)로 응답에 실어, 앱이 디코드해 저장했다가
+    # 이후 유사도 비교(예: /scan-peak)의 target(목표 구도)으로 다시 보낼 수 있게 한다.
+    best_image_b64 = None
+    if best is not None:
+        try:
+            best_image_b64 = base64.b64encode((capture_dir / "best.jpg").read_bytes()).decode()
+        except Exception as e:
+            print(f"[WARN] best.jpg base64 인코딩 실패(무시): {e}")
+
     best_slim = None if best is None else {
         "source_box_in_1x": best.get("source_box_in_1x"),
         "candidate_index": best.get("candidate_index"),
         "similarity": best.get("similarity"),
+        "image_base64": best_image_b64,  # 목표 구도 이미지(JPEG) base64 — 앱이 디코드해 저장 후 재전송
     }
     return {
         "saved": name,            # 상세 조회용 폴더 id (/captures/{saved})

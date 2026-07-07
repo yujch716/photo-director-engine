@@ -1,11 +1,14 @@
-"""드론 이동 오프셋(픽셀) 계산.
+"""화면 픽셀 오프셋 계산 (드론 좌표계 비종속).
 
 best 크롭 박스(1x 이미지 픽셀 좌표)와 1x 이미지 크기로부터
-"현재 화면 중심 대비 best 크롭이 얼마나 벗어나 있는지"를 픽셀 오프셋으로 산출한다.
+"피사체(best 구도)가 화면 중심 대비 어디에 있는지"를 순수 화면 좌표로 산출한다.
 
-직교 성분(dx, dy)과 극좌표(dr, theta_deg)를 함께 낸다. 극좌표는 "θ 방향으로 dr만큼
-한 번에" 이동하는 대각선 단일 이동을 표현한다. 실제 월드 좌표/속도 변환은 이후
-AirSim 단계에서 별도로 처리한다.
+서버는 여기까지만 한다: "화면에서 피사체가 어느 방향/거리"인지.
+특정 드론(AirSim ENU forward, DJI 등)으로의 이동 방향/전후진 변환은 하지 않는다.
+그 변환은 각 클라이언트(앱)가 자기 좌표계에 맞춰 담당한다.
+
+좌표계: 화면 픽셀 그대로. x=오른쪽 +, y=아래 + (부호 뒤집기 없음).
+직교 성분(dx, dy)과 극좌표(dr, theta_deg)를 함께 낸다.
 """
 
 from __future__ import annotations
@@ -18,10 +21,11 @@ def compute_offset(
     best_source_box: list[float] | tuple[float, float, float, float] | None,
     image_1x_size: tuple[int, int] | None,
 ) -> dict[str, Any] | None:
-    """best 크롭 박스와 1x 이미지 크기로 드론 이동 오프셋을 계산한다.
+    """best 크롭 박스와 1x 이미지 크기로 '화면 픽셀 오프셋'을 계산한다.
 
-    줌(전진/후진)은 계산하지 않는다: 후보 창이 항상 2배율 크기(W/zoom_ratio)라
-    best 박스도 늘 같은 크기 → 줌 변화가 없어 산출 불가. 팬(대각선 이동)만 낸다.
+    피사체(best 구도)가 화면 중심에서 얼마나(dr) 어느 방향(theta_deg)으로 벗어났는지를
+    순수 화면 좌표로만 낸다. 특정 드론의 forward/전후진 등으로 변환하지 않는다(클라이언트 몫).
+    줌(전진/후진)도 계산하지 않는다: 후보 창이 항상 2배율 크기라 best 박스도 늘 같은 크기.
 
     Args:
         best_source_box: 1x 좌표계의 best 크롭 박스 [left, top, right, bottom].
@@ -29,18 +33,24 @@ def compute_offset(
         image_1x_size: 1x 원본 이미지 크기 (W, H).
 
     Returns:
-        dict 또는 None(입력 부족 시):
+        dict 또는 None(입력 부족 시). 모두 '화면 픽셀 좌표'(x=오른쪽+, y=아래+) 기준:
           -- 직교(픽셀) --
-          dx        : best 박스 중심 − 이미지 중심 (픽셀). +면 오른쪽으로 이동해야 함
-          dy        : best 박스 중심 − 이미지 중심 (픽셀). +면 아래로 이동해야 함
-          dx_norm   : dx / W  (해상도 무관 정규화 값, -0.5 ~ 0.5)
+          dx        : 피사체 중심 − 화면 중심의 가로 오프셋. +=오른쪽, -=왼쪽
+          dy        : 세로 오프셋. +=아래, -=위  (화면 좌표 그대로, 부호 뒤집기 없음)
+          dx_norm   : dx / W  (해상도 무관 정규화, -0.5 ~ 0.5)
           dy_norm   : dy / H
-          -- 극좌표(거리·각도): "θ 방향으로 dr만큼 한 번에" = 대각선 단일 이동 --
-          dr        : 이동 거리 = sqrt(dx^2 + dy^2) (픽셀)
+          -- 극좌표(거리·방향) --
+          dr        : 오프셋 벡터 크기 = sqrt(dx^2 + dy^2) (픽셀)
           dr_norm   : dr / W  (해상도 무관 정규화)
-          theta_deg : 이동 방향(도). 오른쪽(+x)을 0°로, 반시계 방향 양수.
-                      0°=오른쪽, 90°=위, 180°=왼쪽, -90°(=270°)=아래.
-                      (수학 표준 atan2. 화면 위가 +방향이 되도록 dy 부호를 뒤집어 계산)
+          theta_deg : 화면 좌표 기준 오프셋 방향(도) = degrees(atan2(dy, dx)).
+                      dy를 뒤집지 않고 화면 그대로 사용:
+                        0°   = 오른쪽 (+x)
+                        +90° = 아래   (+y)
+                        ±180°= 왼쪽   (-x)
+                        -90° = 위     (-y)
+                      즉 양의 각도는 화면상 시계방향(오른쪽→아래).
+                      ※ 이건 "화면에서 피사체가 어느 방향"일 뿐, 드론 forward/기수방향과 무관.
+                        각 클라이언트가 자기 좌표계(AirSim ENU, DJI 등)로 변환해서 쓸 것.
     """
     if best_source_box is None or image_1x_size is None:
         return None
@@ -60,9 +70,10 @@ def compute_offset(
     dy = best_cy - img_cy
 
     dr = math.hypot(dx, dy)
-    # 오른쪽(+x)을 0°로, 반시계 양수(위=90°)로 재는 수학 표준 각도.
-    # 이미지 좌표는 y가 아래로 +이므로 -dy로 뒤집어 atan2(-dy, dx)를 쓴다.
-    theta_deg = math.degrees(math.atan2(-dy, dx))
+    # 화면 좌표 그대로: x=오른쪽+, y=아래+. dy 부호를 뒤집지 않는다.
+    #   0°=오른쪽, +90°=아래, ±180°=왼쪽, -90°=위. (양수 = 화면상 시계방향)
+    # 특정 드론 좌표계(forward 등)로의 변환은 서버가 하지 않음(클라이언트 담당).
+    theta_deg = math.degrees(math.atan2(dy, dx))
 
     return {
         "dx": dx,

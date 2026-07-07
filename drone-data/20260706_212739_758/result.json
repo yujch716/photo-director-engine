@@ -1,0 +1,146 @@
+{
+  "location": {
+    "lat": 36.01027902699743,
+    "lng": 129.322286055872
+  },
+  "nearby_landmarks": [
+    {
+      "name": "유강재",
+      "lat": 36.0080133741305,
+      "lng": 129.318919970416,
+      "address": "경북 포항시 남구 연일읍 유강길 48",
+      "distance": 394,
+      "category": "여행 > 관광,명소 > 문화유적 > 사당,제단"
+    },
+    {
+      "name": "연일향교",
+      "lat": 36.0063363633856,
+      "lng": 129.323632448032,
+      "address": "경북 포항시 남구 유동길48번길 5",
+      "distance": 454,
+      "category": "여행 > 관광,명소 > 문화유적 > 향교,서당"
+    },
+    {
+      "name": "노적봉",
+      "lat": 36.01205286408864,
+      "lng": 129.3173671094841,
+      "address": "경북 포항시 남구 연일읍 유강리 산 2",
+      "distance": 485,
+      "category": "여행 > 관광,명소 > 산봉우리"
+    },
+    {
+      "name": "고동골",
+      "lat": 36.0138572493601,
+      "lng": 129.312111140639,
+      "address": "경북 포항시 남구 연일읍 자명리",
+      "distance": 999,
+      "category": "여행 > 관광,명소 > 계곡"
+    }
+  ],
+  "candidate_labels": [
+    "유강재",
+    "연일향교",
+    "노적봉",
+    "고동골"
+  ],
+  "tags": {
+    "time": "night",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [],
+    "facing": "front",
+    "landmark": null
+  },
+  "targets": [
+    {
+      "class": "person",
+      "bbox": [
+        0.8145999908447266,
+        0.5231000185012817,
+        0.13369999825954437,
+        0.3183000087738037
+      ]
+    }
+  ],
+  "original_2x": {
+    "left": 360,
+    "top": 270,
+    "right": 1080,
+    "bottom": 810
+  },
+  "results": [
+    {
+      "class": "person",
+      "bbox": [
+        0.8145999908447266,
+        0.5231000185012817,
+        0.13369999825954437,
+        0.3183000087738037
+      ],
+      "bbox_pixel": {
+        "left": 1076,
+        "top": 393,
+        "right": 1269,
+        "bottom": 736
+      },
+      "landmark": null,
+      "confidence": 0.24409,
+      "scores": {
+        "hands_of_harmony": 0.233697,
+        "cheomseongdae": 0.241488,
+        "dabotap": 0.237057,
+        "seokgatap": 0.238539,
+        "daereungwon": 0.238684,
+        "yeongildae": 0.232164,
+        "yeonorang_seonyeo": 0.24409
+      }
+    }
+  ],
+  "best": {
+    "path": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260706_212739_758/best.jpg",
+    "candidate_index": 31,
+    "source_box_in_1x": [
+      720,
+      324,
+      1440,
+      864
+    ],
+    "similarity": 0.5030338764190674,
+    "reference": "ver_1/72.png",
+    "reference_index": 116,
+    "reference_tags": {
+      "id": 116,
+      "path": "ver_1/72.png",
+      "time": "day",
+      "weather": "clear",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [
+        "sea",
+        "ground",
+        "structure"
+      ],
+      "facing": "front",
+      "landmark": "hands_of_harmony"
+    },
+    "candidate_tags": {
+      "time": "night",
+      "weather": "rain",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [],
+      "facing": "front",
+      "landmark": null
+    }
+  },
+  "drone_offset": {
+    "dx": 360.0,
+    "dy": 54.0,
+    "dx_norm": 0.25,
+    "dy_norm": 0.05,
+    "dr": 364.02747149082035,
+    "dr_norm": 0.25279685520195855,
+    "theta_deg": 8.530765609948133
+  }
+}

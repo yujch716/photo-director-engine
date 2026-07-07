@@ -1,0 +1,143 @@
+{
+  "location": {
+    "lat": 36.00937098670555,
+    "lng": 129.32237610172547
+  },
+  "nearby_landmarks": [
+    {
+      "name": "유강재",
+      "lat": 36.0080133741305,
+      "lng": 129.318919970416,
+      "address": "경북 포항시 남구 연일읍 유강길 48",
+      "distance": 346,
+      "category": "여행 > 관광,명소 > 문화유적 > 사당,제단"
+    },
+    {
+      "name": "연일향교",
+      "lat": 36.0063363633856,
+      "lng": 129.323632448032,
+      "address": "경북 포항시 남구 유동길48번길 5",
+      "distance": 355,
+      "category": "여행 > 관광,명소 > 문화유적 > 향교,서당"
+    },
+    {
+      "name": "노적봉",
+      "lat": 36.01205286408864,
+      "lng": 129.3173671094841,
+      "address": "경북 포항시 남구 연일읍 유강리 산 2",
+      "distance": 541,
+      "category": "여행 > 관광,명소 > 산봉우리"
+    }
+  ],
+  "candidate_labels": [
+    "유강재",
+    "연일향교",
+    "노적봉"
+  ],
+  "tags": {
+    "time": "night",
+    "weather": "clear",
+    "location": "outdoor",
+    "person_count": 1,
+    "flags": [
+      "ground",
+      "forest",
+      "bystander"
+    ],
+    "facing": "front",
+    "landmark": null
+  },
+  "targets": [
+    {
+      "class": "person",
+      "bbox": [
+        0.629800021648407,
+        0.579200029373169,
+        0.23350000381469727,
+        0.5073000192642212
+      ]
+    }
+  ],
+  "original_2x": {
+    "left": 360,
+    "top": 270,
+    "right": 1080,
+    "bottom": 810
+  },
+  "results": [
+    {
+      "class": "person",
+      "bbox": [
+        0.629800021648407,
+        0.579200029373169,
+        0.23350000381469727,
+        0.5073000192642212
+      ],
+      "bbox_pixel": {
+        "left": 738,
+        "top": 351,
+        "right": 1075,
+        "bottom": 899
+      },
+      "landmark": null,
+      "confidence": 0.213663,
+      "scores": {
+        "hands_of_harmony": 0.210037,
+        "cheomseongdae": 0.196611,
+        "dabotap": 0.202854,
+        "seokgatap": 0.2014,
+        "daereungwon": 0.194799,
+        "yeongildae": 0.193784,
+        "yeonorang_seonyeo": 0.213663
+      }
+    }
+  ],
+  "best": {
+    "path": "/Users/yujin/Desktop/Yujin/포빅아/B2조_AI_프로젝트/photo-director-engine/drone-data/20260706_020354_799/best.jpg",
+    "candidate_index": 28,
+    "source_box_in_1x": [
+      411,
+      324,
+      1131,
+      864
+    ],
+    "similarity": 0.5155571103096008,
+    "reference": "ver_1/34.jpeg",
+    "reference_index": 74,
+    "reference_tags": {
+      "id": 74,
+      "path": "ver_1/34.jpeg",
+      "time": "day",
+      "weather": "clear",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [
+        "sea",
+        "structure"
+      ],
+      "facing": "side",
+      "landmark": "hands_of_harmony"
+    },
+    "candidate_tags": {
+      "time": "night",
+      "weather": "clear",
+      "location": "outdoor",
+      "person_count": 1,
+      "flags": [
+        "forest",
+        "structure"
+      ],
+      "facing": "side",
+      "landmark": null
+    }
+  },
+  "drone_offset": {
+    "dx": 51.0,
+    "dy": 54.0,
+    "dx_norm": 0.035416666666666666,
+    "dy_norm": 0.05,
+    "dr": 74.27651041883968,
+    "dr_norm": 0.05158091001308311,
+    "theta_deg": -46.63657704161672
+  }
+}
