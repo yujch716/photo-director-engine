@@ -13,7 +13,6 @@ from __future__ import annotations
 import io
 import json
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -21,44 +20,61 @@ import numpy as np
 from PIL import Image
 from skimage.metrics import structural_similarity as ssim
 
+from services.nima_log import append_session_nima
+from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
+
 DEFAULT_SSIM_SIZE = 256
 
-# 스캔 프레임/타깃 저장 루트. 기존 폴더들과 섞이지 않게 scan-peak/ 아래로 분리.
-SCAN_PEAK_DIR = Path("drone-data/scan-peak")
+
+def _center_2x_jpeg(image_bytes: bytes) -> bytes:
+    """이미지의 중앙 절반(2배율 뷰)을 잘라 JPEG 바이트로 반환(색상 유지)."""
+    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    W, H = img.size
+    crop = img.crop((W // 4, H // 4, W - W // 4, H - H // 4))
+    buf = io.BytesIO()
+    crop.save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 def save_scan_peak_inputs(
     frame_bytes_list: list[bytes],
-    target_bytes: bytes,
     result: dict[str, Any] | None = None,
+    session_id: str | None = None,
     data_dir: Path | None = None,
 ) -> str:
-    """스캔 프레임 전부 + target(+정점 결과)을 drone-data/scan-peak/<타임스탬프>/에 저장.
+    """스캔 프레임(중앙 2배 크롭) + 정점 best + 결과를 저장한다.
 
+    세션 없으면 drone-data/scan-peak/<ts>/, 있으면 drone-data/<session_id>/2_scan/.
     저장 파일:
-        frame_000.jpg, frame_001.jpg, ...  : 받은 프레임 전부(업로드 순서)
-        target.jpg                          : 비교 기준(최종구도)
-        scan.json                           : (선택) find_scan_peak 결과(정점/scores/타이밍)
+        frame_000.jpg, ...  : 받은 프레임을 중앙 2배 크롭한 이미지(시간순, SSIM 비교와 동일 스케일)
+        best.jpg            : SSIM 정점 프레임(중앙 2배 크롭)
+        report.json         : (선택) 각 프레임 SSIM / 선택 index·이름 / timing_ms
     Returns:
-        저장 폴더명(saved).
+        저장 폴더 경로(drone-data 이하).
     """
-    base = data_dir or SCAN_PEAK_DIR
-    name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    folder = base / name
-    # 같은 밀리초 중복 호출에도 덮어쓰지 않도록 유일한 폴더명 보장.
-    suffix = 1
-    while folder.exists():
-        folder = base / f"{name}_{suffix}"
-        suffix += 1
-    name = folder.name
-    folder.mkdir(parents=True)
+    base = data_dir or DRONE_DATA_DIR
+    folder = resolve_save_dir(session_id, "2_scan", legacy=base / "scan-peak" / make_ts(), data_dir=base)
+    name = str(folder.relative_to(base))
 
+    # 프레임은 SSIM 비교와 동일하게 중앙 2배 크롭해서 저장.
     for i, fb in enumerate(frame_bytes_list):
-        (folder / f"frame_{i:03d}.jpg").write_bytes(fb)
-    (folder / "target.jpg").write_bytes(target_bytes)
+        (folder / f"frame_{i:03d}.jpg").write_bytes(_center_2x_jpeg(fb))
+
+    peak_index = result.get("peak_index") if result else None
+    if peak_index is not None and 0 <= peak_index < len(frame_bytes_list):
+        best_bytes = _center_2x_jpeg(frame_bytes_list[peak_index])
+        (folder / "best.jpg").write_bytes(best_bytes)
+        # 단계별 NIMA 누적 로그(선택 = SSIM 정점 프레임).
+        append_session_nima(session_id, "2_scan/peak", image_bytes=best_bytes, data_dir=base)
+
     if result is not None:
-        (folder / "scan.json").write_text(
-            json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+        report = {
+            **result,
+            "selected_index": peak_index,
+            "selected_name": (f"frame_{peak_index:03d}.jpg" if peak_index is not None else None),
+        }
+        (folder / "report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
     return name

@@ -12,13 +12,13 @@ from __future__ import annotations
 import io
 import json
 import time
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
 from models.nima import run_nima_score
+from services.nima_log import append_session_nima
+from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_indexed_save_dir
 
 # 중앙 크롭 창을 각 방향으로 얼마나(창 크기 대비 비율) 옮길지.
 # 너무 작으면 방향별 그림이 거의 같아 NIMA가 구분 못 함 → 20% 유지.
@@ -26,8 +26,6 @@ CROP_SHIFT_RATIO = 0.20
 
 # 디버깅 저장 기본 on/off (실서비스에선 False로). 함수 인자로도 덮어쓸 수 있음.
 SAVE_DEBUG = True
-# 저장 루트. nima-directions/nima-zoom 결과를 drone-data/nima-move/<타임스탬프>/ 아래로 통일.
-NIMA_MOVE_DIR = Path("drone-data/nima-move")
 
 # 방향별 이동 단위 (dx, dy). +x=오른쪽, +y=아래. "up"=위(=y 감소).
 DIRECTIONS: dict[str, tuple[int, int]] = {
@@ -65,17 +63,16 @@ def _save_debug(
     image_bytes: bytes,
     crops: dict[str, Image.Image],
     result: dict[str, Any],
-    data_dir: Path | None = None,
+    session_id: str | None = None,
+    data_dir=None,
 ) -> str:
-    """9방향 크롭 + 원본 + 점수를 drone-data/nima-move/<타임스탬프>/에 저장(디버깅/검증용)."""
-    base = data_dir or NIMA_MOVE_DIR
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    folder = base / ts
-    suffix = 1
-    while folder.exists():  # 같은 밀리초 충돌 방지
-        folder = base / f"{ts}_{suffix}"
-        suffix += 1
-    folder.mkdir(parents=True)
+    """9방향 크롭 + 원본 + 점수를 저장(디버깅/검증용).
+
+    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_nima-move/lateral/<순번>/.
+    (반복 호출 시 lateral/1, lateral/2 ... 순서대로 쌓임)
+    """
+    base = data_dir or DRONE_DATA_DIR
+    folder = resolve_indexed_save_dir(session_id, "3_nima-move/lateral", legacy=base / "nima-move" / make_ts(), data_dir=base)
 
     (folder / "original.jpg").write_bytes(image_bytes)
     for name, crop in crops.items():
@@ -90,13 +87,19 @@ def _save_debug(
             for k in ("scores", "best_direction", "is_center_best", "best_score", "center_score", "score_margin")
         },
     }
-    (folder / "scores.json").write_text(
+    (folder / "report.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    return folder.name
+    # 단계별 NIMA 누적 로그(선택 = 최고 방향 크롭, 이미 계산된 best_score 재사용).
+    append_session_nima(session_id, f"3_nima-move/lateral/{folder.name}", score=result.get("best_score"), data_dir=base)
+    return str(folder.relative_to(base))
 
 
-def find_best_nima_direction(image_bytes: bytes, save: bool | None = None) -> dict[str, Any]:
+def find_best_nima_direction(
+    image_bytes: bytes,
+    session_id: str | None = None,
+    save: bool | None = None,
+) -> dict[str, Any]:
     """현재 프레임의 9방향 2배율 크롭에 NIMA를 매겨 최고 방향을 반환한다.
 
     Returns:
@@ -151,8 +154,8 @@ def find_best_nima_direction(image_bytes: bytes, save: bool | None = None) -> di
     # 디버깅 저장(응답 형식은 그대로, 저장만 부가). 실패해도 응답은 살린다.
     if SAVE_DEBUG if save is None else save:
         try:
-            saved = _save_debug(image_bytes, crops, result)
-            print(f"[nima-dir] debug saved: drone-data/nima-move/{saved}")
+            saved = _save_debug(image_bytes, crops, result, session_id=session_id)
+            print(f"[nima-dir] debug saved: drone-data/{saved}")
         except Exception as e:
             print(f"[WARN] nima-directions 디버깅 저장 실패(무시): {e}")
 

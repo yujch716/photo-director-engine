@@ -12,53 +12,46 @@ from __future__ import annotations
 
 import io
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
-# 스캔 결과 저장 루트. 기존 /capture 폴더와 섞이지 않게 result/ 아래로 분리.
-DRONE_DATA_DIR = Path("drone-data/result")
+from services.nima_log import append_session_nima
+from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
 
 
 def save_scan_result(
     image_bytes: bytes,
-    target_bytes: bytes | None = None,
     meta_json: str | None = None,
+    session_id: str | None = None,
     data_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """정점 도착 사진(+선택 target/meta)을 새 캡처 폴더에 저장한다.
+    """정점 도착 사진(+선택 meta)을 저장한다. (target은 받지 않음 — 2_scan에 이미 best.jpg 존재)
 
-    저장 파일:
-        arrived.jpg     : 정점 도착 후 촬영 원본
+    저장 파일(세션이면 2_scan 폴더 공유):
+        arrived_1x.jpg  : 정점 도착 후 촬영 원본
         arrived_2x.jpg  : arrived의 중앙 절반을 2배율로 확대한 이미지(capture의 original_2x와 동일 방식)
-        target.jpg      : (선택) 최종구도 이미지
         meta.json       : (선택) 메타데이터
 
     Args:
-        image_bytes: 정점 도착 후 촬영 사진(JPEG) — arrived.jpg / arrived_2x.jpg 로 저장.
-        target_bytes: (선택) 최종구도 이미지(JPEG) — target.jpg 로 저장(비교 검증용).
+        image_bytes: 정점 도착 후 촬영 사진(JPEG) — arrived_1x.jpg / arrived_2x.jpg 로 저장.
         meta_json: (선택) JSON 문자열(theta, peak_index, 되돌아간 거리 등) — meta.json 으로 저장.
-        data_dir: 저장 루트(기본 drone-data/result).
+        session_id: (선택) 있으면 drone-data/<session_id>/2_scan/ 에 저장(scan-peak와 공유).
+        data_dir: 저장 루트(기본 drone-data).
 
     Returns:
-        {"saved": "<폴더명>", "message": "저장 완료"}
+        {"saved": "<drone-data 이하 폴더 경로>", "message": "저장 완료"}
     """
     base = data_dir or DRONE_DATA_DIR
-    name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    folder = base / name
-    # 같은 밀리초에 두 번 호출되어도 덮어쓰지 않도록 유일한 폴더명 보장.
-    suffix = 1
-    while folder.exists():
-        folder = base / f"{name}_{suffix}"
-        suffix += 1
-    name = folder.name
-    folder.mkdir(parents=True)
+    # 세션 없으면 기존 경로(drone-data/result/<ts>), 있으면 <session>/2_scan/ (scan-peak와 공유).
+    folder = resolve_save_dir(session_id, "2_scan", legacy=base / "result" / make_ts(), data_dir=base)
+    name = str(folder.relative_to(base))
 
-    (folder / "arrived.jpg").write_bytes(image_bytes)
+    (folder / "arrived_1x.jpg").write_bytes(image_bytes)
 
     # arrived의 중앙 절반을 2배율로 확대(capture.py의 original_2x와 동일 방식)해 저장.
+    arrived_2x_bytes = None
     try:
         base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         W, H = base_img.size
@@ -66,12 +59,13 @@ def save_scan_result(
         zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
         buf = io.BytesIO()
         zoomed.save(buf, format="JPEG")
-        (folder / "arrived_2x.jpg").write_bytes(buf.getvalue())
+        arrived_2x_bytes = buf.getvalue()
+        (folder / "arrived_2x.jpg").write_bytes(arrived_2x_bytes)
     except Exception as e:
         print(f"[WARN] arrived_2x.jpg 생성 실패(무시): {e}")
 
-    if target_bytes is not None:
-        (folder / "target.jpg").write_bytes(target_bytes)
+    # 단계별 NIMA 누적 로그(선택 = 도착 사진의 2배 크롭, 없으면 원본).
+    append_session_nima(session_id, "2_scan/arrived", image_bytes=(arrived_2x_bytes or image_bytes), data_dir=base)
 
     if meta_json is not None:
         try:

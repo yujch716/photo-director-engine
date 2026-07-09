@@ -127,12 +127,12 @@
     </section>
 
     <section class="page" id="page-captures">
-      <h2>Capture Viewer — /capture 저장 데이터</h2>
+      <h2>Capture Viewer — 세션 로그</h2>
 
       <div class="toolbar" style="gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;">
-          촬영 폴더
-          <select id="captures-select" style="min-width:220px;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+          세션
+          <select id="captures-select" style="min-width:260px;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
             <option value="">— 선택 —</option>
           </select>
         </label>
@@ -143,25 +143,9 @@
       <div class="error" id="captures-error"></div>
 
       <div id="captures-detail" style="display:none;">
-        <h3 style="margin-top:12px;">최종 구도 시각화</h3>
-        <div class="panel" style="margin-bottom:24px;">
-          <div class="image-frame" style="background:#0b1020;">
-            <canvas id="captures-overlay" style="display:block;width:100%;height:auto;"></canvas>
-          </div>
-          <div id="captures-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
-        </div>
-
-        <h3 style="margin-top:12px;">최종 구도 상세 (태그 · 매칭 reference)</h3>
-        <div id="captures-best" class="panel" style="margin-bottom:24px;"></div>
-
-        <h3 style="margin-top:12px;">이미지</h3>
-        <div id="captures-images" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px;"></div>
-
-        <h3>메타데이터</h3>
-        <div id="captures-meta" class="panel" style="margin-bottom:24px;"></div>
-
-        <h3>Results</h3>
-        <div id="captures-results"></div>
+        <div id="captures-nima" class="panel" style="margin-bottom:16px;"></div>
+        <div id="captures-menu" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
+        <div id="captures-content"></div>
       </div>
     </section>
   </main>

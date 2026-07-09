@@ -11,13 +11,13 @@ from __future__ import annotations
 import io
 import json
 import time
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
 from models.nima import run_nima_score
+from services.nima_log import append_session_nima
+from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_indexed_save_dir
 
 # 중앙 2배율 크롭 기준 배율 스텝(±10%).
 ZOOM_STEP = 0.1
@@ -26,14 +26,12 @@ ZOOM_OUT_FACTOR = 1.0 - ZOOM_STEP   # 0.9 = 후진(더 넓게 크롭)
 
 # 디버깅 저장 기본 on/off (실서비스에선 False). 함수 인자로도 덮어쓸 수 있음.
 SAVE_DEBUG = True
-# 저장 루트. nima-directions/nima-zoom 결과를 drone-data/nima-move/<타임스탬프>/ 아래로 통일.
-NIMA_MOVE_DIR = Path("drone-data/nima-move")
 
 # 저장 파일명(배율 표기).
 _SAVE_NAMES = {
-    "current": "current(1.0).jpg",
-    "zoom_in": "zoom_in(1.1).jpg",
-    "zoom_out": "zoom_out(0.9).jpg",
+    "current": "center.jpg",         # 1.0
+    "zoom_in": "center_1_1x.jpg",    # 1.1 (전진)
+    "zoom_out": "center_0_9x.jpg",   # 0.9 (후진)
 }
 
 
@@ -65,17 +63,16 @@ def _save_debug(
     image_bytes: bytes,
     crops: dict[str, Image.Image],
     result: dict[str, Any],
-    data_dir: Path | None = None,
+    session_id: str | None = None,
+    data_dir=None,
 ) -> str:
-    """원본 + 배율 크롭들 + 점수/판단을 drone-data/nima-move/<타임스탬프>/에 저장."""
-    base = data_dir or NIMA_MOVE_DIR
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    folder = base / ts
-    suffix = 1
-    while folder.exists():
-        folder = base / f"{ts}_{suffix}"
-        suffix += 1
-    folder.mkdir(parents=True)
+    """원본 + 배율 크롭들 + 점수/판단을 저장.
+
+    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_nima-move/depth/<순번>/.
+    (반복 호출 시 depth/1, depth/2 ... 순서대로 쌓임)
+    """
+    base = data_dir or DRONE_DATA_DIR
+    folder = resolve_indexed_save_dir(session_id, "3_nima-move/depth", legacy=base / "nima-move" / make_ts(), data_dir=base)
 
     (folder / "original.jpg").write_bytes(image_bytes)
     for name, crop in crops.items():
@@ -90,15 +87,18 @@ def _save_debug(
             for k in ("scores", "direction", "best_zoom", "improved", "current_score", "best_score")
         },
     }
-    (folder / "scores.json").write_text(
+    (folder / "report.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    return folder.name
+    # 단계별 NIMA 누적 로그(선택 = 최고 배율 크롭, 이미 계산된 best_score 재사용).
+    append_session_nima(session_id, f"3_nima-move/depth/{folder.name}", score=result.get("best_score"), data_dir=base)
+    return str(folder.relative_to(base))
 
 
 def evaluate_zoom(
     image_bytes: bytes,
     direction: str | None = None,
+    session_id: str | None = None,
     save: bool | None = None,
 ) -> dict[str, Any]:
     """배율 크롭 NIMA 점수로 전진/후진을 판단한다.
@@ -185,8 +185,8 @@ def evaluate_zoom(
 
     if SAVE_DEBUG if save is None else save:
         try:
-            saved = _save_debug(image_bytes, crops, result)
-            print(f"[nima-zoom] debug saved: drone-data/nima-move/{saved}")
+            saved = _save_debug(image_bytes, crops, result, session_id=session_id)
+            print(f"[nima-zoom] debug saved: drone-data/{saved}")
         except Exception as e:
             print(f"[WARN] nima-zoom 디버깅 저장 실패(무시): {e}")
 

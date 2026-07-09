@@ -4,7 +4,6 @@ import base64
 import io
 import json
 import pathlib
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +13,8 @@ from models.landmark_clip import identify_object, tag_image
 from services.best_crop import select_best_crop
 from services.drone_offset import compute_offset
 from services.kakao_places import get_landmarks_by_keyword
+from services.nima_log import append_session_nima
+from services.session_paths import make_ts, resolve_save_dir
 
 TEST_DATA_DIR = pathlib.Path("drone-data")
 
@@ -71,10 +72,13 @@ def process_capture(
     target_list: list[dict],
     lat: float | None,
     lng: float | None,
+    session_id: str | None = None,
 ) -> dict[str, Any]:
-    name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    capture_dir = TEST_DATA_DIR / name
-    capture_dir.mkdir(parents=True, exist_ok=True)
+    # 세션 없으면 drone-data/<ts>/, 있으면 drone-data/<session_id>/1_original/
+    capture_dir = resolve_save_dir(
+        session_id, "1_original", legacy=TEST_DATA_DIR / make_ts(), data_dir=TEST_DATA_DIR
+    )
+    name = str(capture_dir.relative_to(TEST_DATA_DIR))  # "<ts>" 또는 "<session_id>/1_original"
 
     (capture_dir / "original_1x.jpg").write_bytes(image_bytes)
 
@@ -164,7 +168,7 @@ def process_capture(
     # 임베딩 데이터가 없으면 (None, None)이 돌아오고 앞단 결과는 그대로 반환된다.
     best, drone_offset = _run_best_crop_pipeline(capture_dir, (W, H))
 
-    # best가 나왔으면 그 좌표/오프셋을 result.json에도 합쳐 저장(step 7).
+    # best가 나왔으면 그 좌표/오프셋을 result.json에도 합쳐 저장.
     if best is not None:
         try:
             rj = capture_dir / "result.json"
@@ -176,6 +180,31 @@ def process_capture(
             )
         except Exception as e:
             print(f"[WARN] result.json에 best 저장 실패(무시): {e}")
+
+    # 로그용 통합 report.json: GPS / 주변 랜드마크 / 타깃 좌표 / 최적구도 좌표.
+    # (best_crop이 쓴 report.json을 이 통합본으로 덮어씀. result.json은 내부용으로 유지)
+    try:
+        report = {
+            "location": {"lat": lat, "lng": lng},
+            "nearby_landmarks": nearby_places,
+            "targets": [
+                {"class": r["class"], "bbox": r["bbox"], "bbox_pixel": r["bbox_pixel"]}
+                for r in results
+            ],
+            "original_2x": payload["original_2x"],
+            "best": best,             # source_box_in_1x 등 최적구도 좌표(없으면 None)
+            "drone_offset": drone_offset,
+        }
+        (capture_dir / "report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception as e:
+        print(f"[WARN] report.json 저장 실패(무시): {e}")
+
+    # 단계별 NIMA 누적 로그(선택 = best 크롭, 없으면 원본 1x). 파이프라인 시작점.
+    best_path = capture_dir / "best.jpg"
+    sel_bytes = best_path.read_bytes() if best_path.exists() else image_bytes
+    append_session_nima(session_id, "1_original", image_bytes=sel_bytes, data_dir=TEST_DATA_DIR)
 
     # HTTP 응답은 드론이 실제로 쓰는 것만 슬림하게 반환한다.
     # (location/nearby_landmarks/tags/results/reference 태그 등 상세는 result.json에 다 저장돼 있고
