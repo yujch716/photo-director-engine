@@ -178,7 +178,36 @@ def get_session(session_id: str):
         else:
             menus[step] = [_collect_group(sd, step)]
 
-    return {"session_id": session_id, "nima_score": nima_score, "menus": menus}
+    # 4_final 비교: 원본(1_original/original_1x) vs 최종(4_final/final.jpg) + 각 NIMA.
+    final_compare = None
+    fin = root / "4_final" / "final.jpg"
+    if fin.exists():
+        def _nima_of(p: pathlib.Path):
+            try:
+                return round(float(run_nima_score(p.read_bytes())["score"]), 4)
+            except Exception:
+                return None
+
+        # 최종 점수는 nima-score.json의 4_final 항목 재사용, 없으면 계산.
+        fin_nima = None
+        for e in (nima_score or []):
+            if e.get("stage") == "4_final":
+                fin_nima = e.get("nima")
+        if fin_nima is None:
+            fin_nima = _nima_of(fin)
+
+        orig = root / "1_original" / "original_1x.jpg"
+        final_compare = {
+            "original": ({"url": _rel_url(orig), "nima": _nima_of(orig)} if orig.exists() else None),
+            "final": {"url": _rel_url(fin), "nima": fin_nima},
+        }
+
+    return {
+        "session_id": session_id,
+        "nima_score": nima_score,
+        "menus": menus,
+        "final_compare": final_compare,
+    }
 
 
 
