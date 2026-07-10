@@ -120,6 +120,66 @@ document.getElementById('nima-input').addEventListener('change', async (event) =
   event.target.value = '';
 });
 
+// ── SAMP Score (구도 점수) ────────────────────────────────────────────
+document.getElementById('samp-input').addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('samp-status');
+  const errorEl = document.getElementById('samp-error');
+  const resultEl = document.getElementById('samp-result');
+  document.getElementById('samp-file-name').textContent = file.name;
+
+  status.textContent = 'Running SAMP... first run may load model weights.';
+  errorEl.style.display = 'none';
+  resultEl.classList.remove('visible');
+  document.getElementById('samp-img').src = URL.createObjectURL(file);
+
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch('/samp-score', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
+
+    status.textContent = '';
+    document.getElementById('samp-score').textContent = data.score.toFixed(2);
+    document.getElementById('samp-device').textContent =
+      `Device: ${data.device} · 구도 점수 (1~5)`;
+    document.getElementById('samp-dominant').textContent =
+      data.dominant_pattern != null ? `주요 구도 패턴: #${data.dominant_pattern}` : '';
+
+    const detail = document.getElementById('samp-detail');
+    let html = '';
+    if (Array.isArray(data.distribution)) {
+      const mx = Math.max(...data.distribution);
+      html += '<div class="metric-title" style="font-size:13px;margin-bottom:6px;">점수 분포 (1~5)</div>';
+      html += data.distribution.map((p, i) => {
+        const w = mx > 0 ? (p / mx) * 100 : 0;
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;font-size:12px;">
+          <span style="width:12px;color:#6b7280;">${i + 1}</span>
+          <div style="flex:1;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:10px;width:${w}%;background:#2563eb;"></div></div>
+          <span style="width:44px;text-align:right;">${p.toFixed(3)}</span>
+        </div>`;
+      }).join('');
+    }
+    if (data.attributes) {
+      html += '<div class="metric-title" style="font-size:13px;margin:12px 0 6px;">구도 속성</div>';
+      html += '<table><tbody>' + Object.entries(data.attributes).map(([k, v]) =>
+        `<tr><td class="mono" style="padding-right:12px;">${escapeHtml(k)}</td><td>${v.toFixed(4)}</td></tr>`
+      ).join('') + '</tbody></table>';
+    }
+    detail.innerHTML = html;
+
+    resultEl.classList.add('visible');
+  } catch (err) {
+    showError(errorEl, status, err.message);
+  }
+
+  event.target.value = '';
+});
+
 // ── Kakao Map (Leaflet + OpenStreetMap) ───────────────────────────────
 let _leafletMap = null;
 let _leafletMarkers = [];
@@ -220,7 +280,8 @@ document.querySelector('[data-page="kakao-map"]').addEventListener('click', () =
 const CAP_MENUS = [
   { key: '1_original', label: '1_original', sub: '장면탐색' },
   { key: '2_scan', label: '2_scan', sub: '구도' },
-  { key: '3_nima-move', label: '3_nima-move', sub: '세부이동' },
+  { key: '3_detail-move', label: '3_detail-move', sub: '세부이동' },
+  { key: '4_final', label: '4_final', sub: '최종' },
 ];
 let capSession = null;
 let capMenu = '1_original';
@@ -301,8 +362,95 @@ function renderMenuTabs() {
 function renderMenuContent() {
   const el = document.getElementById('captures-content');
   const groups = capSession.menus[capMenu] || [];
-  if (!groups.length) { el.innerHTML = '<p style="color:#6b7280;">이 단계 데이터 없음</p>'; return; }
-  el.innerHTML = groups.map(renderGroup).join('');
+
+  if (capMenu === '4_final') { renderFinalCompare(el); return; }
+
+  let html = '';
+  // 1_original: 원본 위에 2배율 박스 + best 박스 + 이동 방향 오버레이
+  if (capMenu === '1_original' && groups.length) {
+    html += `<div class="panel" style="margin-bottom:20px;">
+      <div class="metric-title" style="font-size:13px;">구도 이동 시각화 (2배율 박스 → best 박스, 각 중심 잇기)</div>
+      <div class="image-frame" style="background:#0b1020;"><canvas id="orig-overlay" style="display:block;width:100%;height:auto;"></canvas></div>
+      <div id="orig-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
+    </div>`;
+  }
+  html += groups.length ? groups.map(renderGroup).join('') : '<p style="color:#6b7280;">이 단계 데이터 없음</p>';
+  el.innerHTML = html;
+
+  if (capMenu === '1_original' && groups.length) drawOriginalOverlay(groups[0]);
+}
+
+function drawOriginalOverlay(group) {
+  const canvas = document.getElementById('orig-overlay');
+  const legend = document.getElementById('orig-overlay-legend');
+  if (!canvas) return;
+  const origImg = (group.images.find((im) => /original_1x/i.test(im.name)) || {}).url;
+  const report = group.jsons['report.json'] || group.jsons['result.json'] || {};
+  const b2 = report.original_2x;                 // {left,top,right,bottom}
+  const bestBox = report.best && report.best.source_box_in_1x; // [l,t,r,b]
+  const offset = report.drone_offset;
+  if (!origImg) { legend.textContent = 'original_1x 이미지 없음'; return; }
+
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    const W = img.naturalWidth, H = img.naturalHeight;
+    canvas.width = W; canvas.height = H;
+    ctx.drawImage(img, 0, 0, W, H);
+    const lw = Math.max(2, Math.round(W / 320));
+    const fs = Math.max(14, Math.round(W / 42));
+    const drawBox = (coords, color, label) => {
+      if (!coords) return;
+      const [l, t, r, b] = coords;
+      ctx.lineWidth = lw; ctx.strokeStyle = color; ctx.strokeRect(l, t, r - l, b - t);
+      ctx.font = `bold ${fs}px sans-serif`;
+      const tw = ctx.measureText(label).width, th = fs + 8, ty = t >= th ? t - th : t;
+      ctx.fillStyle = color; ctx.fillRect(l, ty, tw + 12, th);
+      ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(label, l + 6, ty + th / 2);
+    };
+    drawBox(b2 ? [b2.left, b2.top, b2.right, b2.bottom] : null, '#3b82f6', '2배율(중앙)');
+    drawBox(bestBox, '#22c55e', 'best');
+    if (bestBox) {
+      const [l, t, r, b] = bestBox;
+      const bcx = (l + r) / 2, bcy = (t + b) / 2, icx = W / 2, icy = H / 2;
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = lw;
+      ctx.beginPath(); ctx.moveTo(icx, icy); ctx.lineTo(bcx, bcy); ctx.stroke();
+      const dot = (x, y, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, lw * 2.2, 0, Math.PI * 2); ctx.fill(); };
+      dot(icx, icy, '#3b82f6'); dot(bcx, bcy, '#22c55e');
+    }
+    const items = ['<span style="color:#3b82f6;">■</span> 2배율(중앙) 박스'];
+    if (bestBox) items.push('<span style="color:#22c55e;">■</span> best 박스');
+    if (offset) {
+      const num = (v) => (typeof v === 'number' ? v.toFixed(1) : v);
+      const polar = (offset.dr != null && offset.theta_deg != null) ? `dr=${num(offset.dr)}px, θ=${num(offset.theta_deg)}° · ` : '';
+      items.push(`<span style="color:#f59e0b;">→</span> 이동: ${polar}dx=${offset.dx}, dy=${offset.dy}`);
+    }
+    if (!bestBox) items.push('<span style="color:#b91c1c;">best 없음</span>');
+    legend.innerHTML = items.join(' &nbsp; ');
+  };
+  img.onerror = () => { legend.textContent = '이미지 로드 실패'; };
+  img.src = origImg;
+}
+
+function renderFinalCompare(el) {
+  const fc = capSession.final_compare;
+  if (!fc) { el.innerHTML = '<p style="color:#6b7280;">4_final 데이터 없음 (final.jpg 없음)</p>'; return; }
+  const card = (title, side) => side ? `
+    <div class="panel" style="width:340px;">
+      <div class="metric-title" style="font-size:13px;">${title}</div>
+      <div class="image-frame"><img src="${side.url}" style="width:100%;height:auto;display:block;" /></div>
+      <div style="margin-top:8px;font-size:14px;">NIMA <b>${side.nima ?? '-'}</b></div>
+    </div>` : `<div class="panel" style="width:340px;"><div class="metric-title" style="font-size:13px;">${title}</div><p style="color:#6b7280;">없음</p></div>`;
+  let delta = '';
+  if (fc.original && fc.final && fc.original.nima != null && fc.final.nima != null) {
+    const d = fc.final.nima - fc.original.nima;
+    delta = `<div style="margin:6px 0 16px;font-size:14px;">최종 − 원본 NIMA: <b style="color:${d >= 0 ? '#16a34a' : '#b91c1c'};">${d >= 0 ? '+' : ''}${d.toFixed(4)}</b></div>`;
+  }
+  el.innerHTML = `<div class="metric-title" style="font-size:13px;margin-bottom:6px;">원본 vs 최종 비교</div>
+    ${delta}
+    <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 (original_1x)', fc.original)}${card('최종 (final.jpg)', fc.final)}</div>
+    <div class="metric-title" style="font-size:13px;margin:20px 0 6px;">2배율 비교 (원본 2배 vs 최종 중앙 2배 크롭)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 2배 (original_2x)', fc.original_2x)}${card('최종 2배 (final.jpg 중앙 2배 크롭)', fc.final_2x)}</div>`;
 }
 
 function renderGroup(g) {

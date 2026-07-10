@@ -21,9 +21,7 @@ def save_final_shot(
     data_dir: Path | None = None,
 ) -> dict[str, Any]:
     """최종 촬영 이미지를 세션 폴더에 저장한다.
-
     세션 있으면 drone-data/<session_id>/4_final/, 없으면 drone-data/final_shot_<ts>/.
-
     Returns:
         {"saved": <session_id 또는 폴더경로>, "path": "/drone-data/.../final.jpg", "message": ...}
     """

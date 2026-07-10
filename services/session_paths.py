@@ -49,7 +49,7 @@ def resolve_save_dir(
     """저장 폴더를 정해 생성 후 반환한다.
 
     session_id 있으면: <data>/<session_id>/<step>/  (고정 이름, 이미 있으면 재사용).
-      - step은 "3_nima-move/lateral"처럼 중첩 경로 가능.
+      - step은 "3_detail-move/lateral"처럼 중첩 경로 가능.
       - 같은 세션의 여러 단계가 한 폴더를 공유할 수 있음(예: scan-peak/scan-result → 2_scan).
       - 같은 step 재호출 시 파일은 덮어쓰기(고정 이름 유지).
     없으면:            legacy 경로               (중복 시 _n, 기존 동작).

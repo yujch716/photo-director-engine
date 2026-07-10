@@ -28,7 +28,7 @@ def append_session_nima(
     """<session_id>/nima-score.json 에 {stage, nima} 를 append한다.
 
     Args:
-        stage: 단계 라벨(예: "1_original", "2_scan/arrived", "3_nima-move/lateral/1").
+        stage: 단계 라벨(예: "1_original", "2_scan/arrived", "3_detail-move/lateral/1").
         image_bytes: 점수를 매길 이미지(선택 사진). score가 없을 때만 사용.
         score: 이미 계산된 NIMA 점수가 있으면 그대로 사용(재계산 안 함).
     Returns:

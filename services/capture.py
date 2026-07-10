@@ -34,7 +34,8 @@ def _run_best_crop_pipeline(
     try:
         report = select_best_crop(
             input_dir=capture_dir,
-            output_dir=capture_dir,  # best.jpg / report.json을 캡처 폴더에 함께 생성
+            output_dir=capture_dir,     # best.jpg를 캡처 폴더에 생성
+            write_report=False,          # report.json은 capture가 통합본으로 직접 관리
         )
     except FileNotFoundError as e:
         print(
@@ -52,13 +53,14 @@ def _run_best_crop_pipeline(
 
     best = {
         "path": report.get("best"),
+        "method": report.get("method"),            # "dino"(랜드마크) | "gaic"(랜드마크 없음)
         "candidate_index": report.get("best_candidate_index"),
         "source_box_in_1x": report.get("best_source_box_in_1x"),
-        "similarity": report.get("best_score"),
+        "similarity": report.get("best_score"),    # dino: 유사도 / gaic: 구도점수
         "reference": report.get("best_reference"),
         "reference_index": report.get("best_reference_index"),
         "reference_tags": report.get("best_reference_tags"),
-        "candidate_tags": report.get("best_candidate_tags"),
+        "scene_tags": report.get("capture_tags"),  # 모든 후보가 공유한 원본 장면 태그
     }
     drone_offset = compute_offset(
         best_source_box=report.get("best_source_box_in_1x"),
@@ -145,7 +147,10 @@ def process_capture(
                 "scores": scores,
             })
 
-    payload = {
+    # 캡처 산출물은 report.json 하나로 통합한다(내용 전부 여기 담음).
+    # best_crop이 이 파일을 읽어 후보 필터/태그에 쓰므로, best 이전에 먼저 저장.
+    report_path = capture_dir / "report.json"
+    report = {
         "location": {"lat": lat, "lng": lng},
         "nearby_landmarks": nearby_places,
         "candidate_labels": nearby_names,
@@ -160,46 +165,27 @@ def process_capture(
         },
         "results": results,
     }
-    (capture_dir / "result.json").write_bytes(
-        json.dumps(payload, ensure_ascii=False, indent=2).encode()
-    )
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # 앞단(2배율/크롭/CLIP/result.json)이 끝난 뒤 best 크롭 + 드론 오프셋으로 이어붙임.
-    # 임베딩 데이터가 없으면 (None, None)이 돌아오고 앞단 결과는 그대로 반환된다.
+    # 앞단(2배율/크롭/CLIP/report.json)이 끝난 뒤 best 크롭 + 드론 오프셋으로 이어붙임.
+    # best_crop은 report.json을 읽고, report.json은 여기서만 관리한다(write_report=False).
     best, drone_offset = _run_best_crop_pipeline(capture_dir, (W, H))
 
-    # best가 나왔으면 그 좌표/오프셋을 result.json에도 합쳐 저장.
+    # best/오프셋을 통합 report.json에 합쳐 저장.
     if best is not None:
         try:
-            rj = capture_dir / "result.json"
-            data = json.loads(rj.read_text(encoding="utf-8"))
+            # best 선택에 뭘 썼는지 한눈에: 랜드마크 有 → clip_dino, 無 → gaic
+            method = best.get("method")
+            selection_method = {"dino": "clip_dino", "gaic": "gaic"}.get(method, method)
+
+            data = json.loads(report_path.read_text(encoding="utf-8"))
+            data["selection_method"] = selection_method  # "clip_dino" | "gaic"
+            data["has_landmark"] = (method == "dino")    # 랜드마크 타깃 존재 여부
             data["best"] = best
             data["drone_offset"] = drone_offset
-            rj.write_text(
-                json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
+            report_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception as e:
-            print(f"[WARN] result.json에 best 저장 실패(무시): {e}")
-
-    # 로그용 통합 report.json: GPS / 주변 랜드마크 / 타깃 좌표 / 최적구도 좌표.
-    # (best_crop이 쓴 report.json을 이 통합본으로 덮어씀. result.json은 내부용으로 유지)
-    try:
-        report = {
-            "location": {"lat": lat, "lng": lng},
-            "nearby_landmarks": nearby_places,
-            "targets": [
-                {"class": r["class"], "bbox": r["bbox"], "bbox_pixel": r["bbox_pixel"]}
-                for r in results
-            ],
-            "original_2x": payload["original_2x"],
-            "best": best,             # source_box_in_1x 등 최적구도 좌표(없으면 None)
-            "drone_offset": drone_offset,
-        }
-        (capture_dir / "report.json").write_text(
-            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-    except Exception as e:
-        print(f"[WARN] report.json 저장 실패(무시): {e}")
+            print(f"[WARN] report.json에 best 저장 실패(무시): {e}")
 
     # 단계별 NIMA 누적 로그(선택 = best 크롭, 없으면 원본 1x). 파이프라인 시작점.
     best_path = capture_dir / "best.jpg"
@@ -219,6 +205,7 @@ def process_capture(
             print(f"[WARN] best.jpg base64 인코딩 실패(무시): {e}")
 
     best_slim = None if best is None else {
+        "method": best.get("method"),          # "dino"(랜드마크) | "gaic"(랜드마크 없음)
         "source_box_in_1x": best.get("source_box_in_1x"),
         "candidate_index": best.get("candidate_index"),
         "similarity": best.get("similarity"),

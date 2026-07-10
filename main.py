@@ -77,8 +77,11 @@ def get_capture(name: str):
     crops = [f for f in images if "crop" in f.lower()]
     best = "best.jpg" if "best.jpg" in images else None
 
+    # 통합 report.json 우선(옛 데이터 호환으로 result.json도 허용).
     result = None
-    result_path = folder / "result.json"
+    result_path = folder / "report.json"
+    if not result_path.exists():
+        result_path = folder / "result.json"
     if result_path.exists():
         result = json.loads(result_path.read_text(encoding="utf-8"))
 
@@ -98,7 +101,7 @@ def nearby_landmarks(lat: float, lng: float, radius_m: int = 1000):
 
 # ── 세션 로그 뷰어용 ─────────────────────────────────────────────────────
 _IMG_EXTS = {".jpg", ".jpeg", ".png"}
-_SESSION_STEPS = ["1_original", "2_scan", "3_nima-move", "4_final"]
+_SESSION_STEPS = ["1_original", "2_scan", "3_detail-move", "4_final"]
 
 
 def _rel_url(f: pathlib.Path) -> str:
@@ -128,7 +131,7 @@ def _collect_group(folder: pathlib.Path, label: str) -> dict:
 
 
 def _leaf_groups(folder: pathlib.Path) -> list[dict]:
-    """중첩 폴더(3_nima-move)에서 파일이 들어있는 leaf 폴더들을 그룹으로 모은다."""
+    """중첩 폴더(3_detail-move)에서 파일이 들어있는 leaf 폴더들을 그룹으로 모은다."""
     groups: list[dict] = []
 
     def walk(d: pathlib.Path, label: str):
@@ -173,7 +176,7 @@ def get_session(session_id: str):
         sd = root / step
         if not sd.is_dir():
             menus[step] = []
-        elif step == "3_nima-move":
+        elif step == "3_detail-move":
             menus[step] = _leaf_groups(sd)
         else:
             menus[step] = [_collect_group(sd, step)]
@@ -197,9 +200,27 @@ def get_session(session_id: str):
             fin_nima = _nima_of(fin)
 
         orig = root / "1_original" / "original_1x.jpg"
+
+        # 원본 2배(1_original/original_2x.jpg): 파일 그대로 URL + NIMA
+        orig2x = root / "1_original" / "original_2x.jpg"
+
+        # 최종 2배: final.jpg의 중앙 절반을 2배 크롭해 base64로 실어보냄(파일 저장 안 함) + NIMA
+        from services.tilt_peak import _center_2x_jpeg
+        final_2x = None
+        try:
+            crop_bytes = _center_2x_jpeg(fin.read_bytes())
+            final_2x = {
+                "url": "data:image/jpeg;base64," + base64.b64encode(crop_bytes).decode(),
+                "nima": round(float(run_nima_score(crop_bytes)["score"]), 4),
+            }
+        except Exception:
+            final_2x = None
+
         final_compare = {
             "original": ({"url": _rel_url(orig), "nima": _nima_of(orig)} if orig.exists() else None),
             "final": {"url": _rel_url(fin), "nima": fin_nima},
+            "original_2x": ({"url": _rel_url(orig2x), "nima": _nima_of(orig2x)} if orig2x.exists() else None),
+            "final_2x": final_2x,
         }
 
     return {
@@ -228,6 +249,18 @@ async def nima_score(image: UploadFile):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return result
+
+
+@app.post("/samp-score")
+async def samp_score(image: UploadFile):
+    """이미지 한 장의 SAMP-Net 구도(composition) 점수(1~5) + 패턴/속성을 반환한다."""
+    contents = await image.read()
+
+    try:
+        from models.sampnet import score_image
+        return score_image(contents)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/nima-lateral")

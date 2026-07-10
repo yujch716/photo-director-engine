@@ -68,11 +68,11 @@ def _save_debug(
 ) -> str:
     """원본 + 배율 크롭들 + 점수/판단을 저장.
 
-    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_nima-move/depth/<순번>/.
+    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_detail-move/depth/<순번>/.
     (반복 호출 시 depth/1, depth/2 ... 순서대로 쌓임)
     """
     base = data_dir or DRONE_DATA_DIR
-    folder = resolve_indexed_save_dir(session_id, "3_nima-move/depth", legacy=base / "nima-move" / make_ts(), data_dir=base)
+    folder = resolve_indexed_save_dir(session_id, "3_detail-move/depth", legacy=base / "nima-move" / make_ts(), data_dir=base)
 
     (folder / "original.jpg").write_bytes(image_bytes)
     for name, crop in crops.items():
@@ -91,7 +91,7 @@ def _save_debug(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     # 단계별 NIMA 누적 로그(선택 = 최고 배율 크롭, 이미 계산된 best_score 재사용).
-    append_session_nima(session_id, f"3_nima-move/depth/{folder.name}", score=result.get("best_score"), data_dir=base)
+    append_session_nima(session_id, f"3_detail-move/depth/{folder.name}", score=result.get("best_score"), data_dir=base)
     return str(folder.relative_to(base))
 
 

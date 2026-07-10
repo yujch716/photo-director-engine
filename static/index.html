@@ -14,8 +14,9 @@
     <nav>
       <button class="active" data-page="yolo">YOLO Detection</button>
       <button data-page="nima">NIMA Score</button>
+      <button data-page="samp">SAMP Score</button>
       <button data-page="kakao-map">Kakao Map</button>
-      <button data-page="captures">Capture Viewer</button>
+      <button data-page="captures">Drone</button>
     </nav>
   </aside>
 
@@ -86,6 +87,37 @@
       </div>
     </section>
 
+    <section class="page" id="page-samp">
+      <h2>SAMP Score Test — 구도(composition) 점수</h2>
+
+      <div class="toolbar">
+        <label class="upload-label">
+          Select Image
+          <input id="samp-input" type="file" accept="image/*" hidden />
+        </label>
+        <span class="file-name" id="samp-file-name"></span>
+      </div>
+
+      <p class="status" id="samp-status"></p>
+      <div class="error" id="samp-error"></div>
+
+      <div class="result-grid" id="samp-result">
+        <div class="panel">
+          <h3>Input Image</h3>
+          <div class="image-frame">
+            <img id="samp-img" src="" alt="SAMP input" />
+          </div>
+        </div>
+        <div class="panel">
+          <h3>SAMP Result</h3>
+          <div class="score" id="samp-score">0.00</div>
+          <div class="score-meta" id="samp-device"></div>
+          <div class="score-meta" id="samp-dominant" style="margin-top:8px;"></div>
+          <div id="samp-detail" style="margin-top:14px;"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="page" id="page-kakao-map">
       <h2>Kakao Map — 주변 관광명소</h2>
 
@@ -127,7 +159,7 @@
     </section>
 
     <section class="page" id="page-captures">
-      <h2>Capture Viewer — 세션 로그</h2>
+      <h2>Drone — 세션 로그</h2>
 
       <div class="toolbar" style="gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;">
@@ -150,6 +182,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=6"></script>
 </body>
 </html>

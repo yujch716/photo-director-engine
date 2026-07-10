@@ -68,11 +68,11 @@ def _save_debug(
 ) -> str:
     """9방향 크롭 + 원본 + 점수를 저장(디버깅/검증용).
 
-    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_nima-move/lateral/<순번>/.
+    세션 없으면 drone-data/nima-move/<ts>/, 있으면 drone-data/<session_id>/3_detail-move/lateral/<순번>/.
     (반복 호출 시 lateral/1, lateral/2 ... 순서대로 쌓임)
     """
     base = data_dir or DRONE_DATA_DIR
-    folder = resolve_indexed_save_dir(session_id, "3_nima-move/lateral", legacy=base / "nima-move" / make_ts(), data_dir=base)
+    folder = resolve_indexed_save_dir(session_id, "3_detail-move/lateral", legacy=base / "nima-move" / make_ts(), data_dir=base)
 
     (folder / "original.jpg").write_bytes(image_bytes)
     for name, crop in crops.items():
@@ -91,7 +91,7 @@ def _save_debug(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     # 단계별 NIMA 누적 로그(선택 = 최고 방향 크롭, 이미 계산된 best_score 재사용).
-    append_session_nima(session_id, f"3_nima-move/lateral/{folder.name}", score=result.get("best_score"), data_dir=base)
+    append_session_nima(session_id, f"3_detail-move/lateral/{folder.name}", score=result.get("best_score"), data_dir=base)
     return str(folder.relative_to(base))
 
 
