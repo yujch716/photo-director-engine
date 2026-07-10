@@ -23,6 +23,7 @@ env/
 
 # AI
 *.pt
+*.npy
 
 # Test data (drone snapshots, crops, debug output)
 test-data/
@@ -34,3 +35,7 @@ test-data/
 config/coarse.npy
 *.pth
 *.pt
+models/samp_net/repo/
+
+
+drone-data/
