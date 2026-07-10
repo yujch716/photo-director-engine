@@ -27,10 +27,10 @@ DEFAULT_SSIM_SIZE = 256
 
 
 def _center_2x_jpeg(image_bytes: bytes) -> bytes:
-    """이미지의 중앙 2/3(1.5배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지)."""
+    """이미지의 중앙 5/7(1.4배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지)."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = img.size
-    crop = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
+    crop = img.crop((W // 7, H // 7, W - W // 7, H - H // 7))  # 1.4배: 중앙 5/7
     buf = io.BytesIO()
     crop.save(buf, format="JPEG")
     return buf.getvalue()
@@ -42,12 +42,12 @@ def save_scan_peak_inputs(
     session_id: str | None = None,
     data_dir: Path | None = None,
 ) -> str:
-    """스캔 프레임(중앙 2배 크롭) + 정점 best + 결과를 저장한다.
+    """스캔 프레임(중앙 1.4배 크롭) + 정점 best + 결과를 저장한다.
 
     세션 없으면 drone-data/scan-peak/<ts>/, 있으면 drone-data/<session_id>/2_scan/.
     저장 파일:
-        frame_000.jpg, ...  : 받은 프레임을 중앙 2배 크롭한 이미지(시간순, SSIM 비교와 동일 스케일)
-        best.jpg            : SSIM 정점 프레임(중앙 2배 크롭)
+        frame_000.jpg, ...  : 받은 프레임을 중앙 1.4배 크롭한 이미지(시간순, SSIM 비교와 동일 스케일)
+        best.jpg            : SSIM 정점 프레임(중앙 1.4배 크롭)
         report.json         : (선택) 각 프레임 SSIM / 선택 index·이름 / timing_ms
     Returns:
         저장 폴더 경로(drone-data 이하).
@@ -56,7 +56,7 @@ def save_scan_peak_inputs(
     folder = resolve_save_dir(session_id, "2_scan", legacy=base / "scan-peak" / make_ts(), data_dir=base)
     name = str(folder.relative_to(base))
 
-    # 프레임은 SSIM 비교와 동일하게 중앙 2배 크롭해서 저장.
+    # 프레임은 SSIM 비교와 동일하게 중앙 1.4배 크롭해서 저장.
     for i, fb in enumerate(frame_bytes_list):
         (folder / f"frame_{i:03d}.jpg").write_bytes(_center_2x_jpeg(fb))
 
@@ -81,15 +81,15 @@ def save_scan_peak_inputs(
 
 
 def _load_gray(image_bytes: bytes, size: int, crop_center: bool = False) -> np.ndarray:
-    """이미지 바이트 → (선택 중앙 1.5배율 크롭) grayscale + (size×size) uint8 배열. SSIM 입력용.
+    """이미지 바이트 → (선택 중앙 1.4배율 크롭) grayscale + (size×size) uint8 배열. SSIM 입력용.
 
-    crop_center=True면 중앙 2/3(= 1.5배율 뷰)만 잘라서 사용한다.
+    crop_center=True면 중앙 5/7(= 1.4배율 뷰)만 잘라서 사용한다.
     (capture의 original_2x와 동일한 crop box)
     """
     img = Image.open(io.BytesIO(image_bytes))
     if crop_center:
         W, H = img.size
-        img = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
+        img = img.crop((W // 7, H // 7, W - W // 7, H - H // 7))  # 1.4배: 중앙 5/7
     img = img.convert("L").resize((size, size))
     return np.asarray(img, dtype=np.uint8)
 
@@ -112,15 +112,15 @@ def find_scan_peak(
 ) -> dict[str, Any]:
     """프레임들 vs target SSIM을 재서 정점(최대 유사도) 프레임을 찾는다.
 
-    각 프레임은 기본적으로 중앙 2배율 크롭 후 비교한다(target은 이미 2배율 구도라 크롭 안 함).
+    각 프레임은 기본적으로 중앙 1.4배율 크롭 후 비교한다(target은 이미 1.4배율 구도라 크롭 안 함).
     → 프레임과 target의 스케일을 맞춰 비교.
 
     Args:
         frame_bytes_list: 프레임 이미지 바이트들(시간순, 0번=스캔 시작). 드론 전체 프레임.
-        target_bytes: 최종구도 이미지 바이트(비교 기준). 이미 2배율 크롭된 상태 가정 → 크롭 안 함.
+        target_bytes: 최종구도 이미지 바이트(비교 기준). 이미 1.4배율 크롭된 상태 가정 → 크롭 안 함.
         size: SSIM 계산용 리사이즈 크기(정사각). 작을수록 빠름.
         smooth_window: 정점 탐색 전 이동평균 창(1이면 스무딩 없음=단순 최대).
-        crop_center: True(기본)면 각 프레임을 중앙 2배율 크롭 후 비교. False면 프레임 전체 비교.
+        crop_center: True(기본)면 각 프레임을 중앙 1.4배율 크롭 후 비교. False면 프레임 전체 비교.
 
     Returns:
         {peak_index, peak_ssim, scores, frame_count, timing_ms}
@@ -132,12 +132,12 @@ def find_scan_peak(
     if n == 0:
         raise ValueError("frames가 비어 있음")
 
-    # target 로드 (이미 2배율 구도라 크롭하지 않음)
+    # target 로드 (이미 1.4배율 구도라 크롭하지 않음)
     t0 = time.perf_counter()
     target_gray = _load_gray(target_bytes, size, crop_center=False)
     target_load_ms = (time.perf_counter() - t0) * 1000.0
 
-    # 프레임별 SSIM (각 프레임은 중앙 2배율 크롭 후 비교)
+    # 프레임별 SSIM (각 프레임은 중앙 1.4배율 크롭 후 비교)
     scores: list[float] = []
     per_frame_ms: list[float] = []
     t_ssim0 = time.perf_counter()

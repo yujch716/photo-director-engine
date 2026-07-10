@@ -26,10 +26,10 @@ SAVE_DEBUG = True
 
 
 def _center_2x_jpeg(image_bytes: bytes) -> bytes:
-    """이미지의 중앙 2/3(1.5배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지). scan_peak과 동일 방식."""
+    """이미지의 중앙 5/7(1.4배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지). scan_peak과 동일 방식."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = img.size
-    crop = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
+    crop = img.crop((W // 7, H // 7, W - W // 7, H - H // 7))  # 1.4배: 중앙 5/7
     buf = io.BytesIO()
     crop.save(buf, format="JPEG")
     return buf.getvalue()
@@ -42,7 +42,7 @@ def _save_tilt(
     session_id: str | None = None,
     data_dir: Path | None = None,
 ) -> str:
-    """중앙 2배 크롭 프레임들(각도 파일명) + best + scores.json을 <session_id>/3_detail-move/tilt/에 저장."""
+    """중앙 1.4배 크롭 프레임들(각도 파일명) + best + scores.json을 <session_id>/3_detail-move/tilt/에 저장."""
     base = data_dir or DRONE_DATA_DIR
     folder = resolve_save_dir(session_id, "3_detail-move/tilt", legacy=base / "tilt" / make_ts(), data_dir=base)
 
@@ -80,7 +80,7 @@ def find_tilt_peak(
     if angles is None or len(angles) != n:
         raise ValueError(f"angles 개수({0 if angles is None else len(angles)})가 frames({n})와 달라야 함")
 
-    # 각 프레임을 중앙 2배 크롭한 뒤 SAMP 구도 점수를 매긴다(구도 스케일 정합). 저장도 이 크롭본으로.
+    # 각 프레임을 중앙 1.4배 크롭한 뒤 SAMP 구도 점수를 매긴다(구도 스케일 정합). 저장도 이 크롭본으로.
     cropped = [_center_2x_jpeg(fb) for fb in frame_bytes_list]
 
     scores: list[float] = []
@@ -121,7 +121,7 @@ def find_tilt_peak(
     saved = None
     if SAVE_DEBUG if save is None else save:
         try:
-            # 저장/로그도 중앙 1.5배 크롭본으로.
+            # 저장/로그도 중앙 1.4배 크롭본으로.
             saved = _save_tilt(cropped, angles, result, session_id=session_id)
             print(f"[tilt-peak] saved: drone-data/{saved}")
         except Exception as e:

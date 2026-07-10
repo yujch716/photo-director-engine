@@ -20,7 +20,7 @@ def parse_args():
     # 단일 patch 임베딩 DB. 기본값 None → config/ 아래에서 읽는다.
     parser.add_argument("--bank-dir", type=Path, default=None)
 
-    parser.add_argument("--zoom-ratio", type=float, default=1.5)
+    parser.add_argument("--zoom-ratio", type=float, default=1.4)
     parser.add_argument("--cols", type=int, default=8)
     parser.add_argument("--rows", type=int, default=6)
 

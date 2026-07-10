@@ -1,6 +1,6 @@
 """정점 도착 후 촬영 결과 저장.
 
-스캔으로 정점에 도착한 뒤 촬영한 사진(arrived.jpg)과 그 중앙 1.5배율 크롭(arrived_1_5x.jpg),
+스캔으로 정점에 도착한 뒤 촬영한 사진(arrived.jpg)과 그 중앙 1.4배율 크롭(arrived_1_5x.jpg),
 선택적으로 최종구도(target.jpg)와 메타데이터(meta.json)를
 drone-data/result/<타임스탬프>/ 아래에 저장한다.
 
@@ -31,7 +31,7 @@ def save_scan_result(
 
     저장 파일(세션이면 2_scan 폴더 공유):
         arrived_1x.jpg    : 정점 도착 후 촬영 원본
-        arrived_1_5x.jpg  : arrived의 중앙 2/3을 1.5배율로 확대한 이미지(capture의 original_1_5x와 동일 방식)
+        arrived_1_5x.jpg  : arrived의 중앙 5/7을 1.4배율로 확대한 이미지(capture의 original_1_5x와 동일 방식)
         meta.json         : (선택) 메타데이터
 
     Args:
@@ -50,12 +50,12 @@ def save_scan_result(
 
     (folder / "arrived_1x.jpg").write_bytes(image_bytes)
 
-    # arrived의 중앙 2/3을 1.5배율로 확대(capture.py의 original_2x와 동일 방식)해 저장.
+    # arrived의 중앙 5/7을 1.4배율로 확대(capture.py의 original_2x와 동일 방식)해 저장.
     arrived_2x_bytes = None
     try:
         base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         W, H = base_img.size
-        zoom_box = (W // 6, H // 6, W - W // 6, H - H // 6)  # 중앙 2/3 영역(1.5배)
+        zoom_box = (W // 7, H // 7, W - W // 7, H - H // 7)  # 중앙 5/7 영역(1.4배)
         zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
         buf = io.BytesIO()
         zoomed.save(buf, format="JPEG")
@@ -64,7 +64,7 @@ def save_scan_result(
     except Exception as e:
         print(f"[WARN] arrived_1_5x.jpg 생성 실패(무시): {e}")
 
-    # 단계별 NIMA 누적 로그(선택 = 도착 사진의 2배 크롭, 없으면 원본).
+    # 단계별 NIMA 누적 로그(선택 = 도착 사진의 1.4배 크롭, 없으면 원본).
     append_session_nima(session_id, "2_scan/arrived", image_bytes=(arrived_2x_bytes or image_bytes), data_dir=base)
 
     if meta_json is not None:

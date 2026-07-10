@@ -402,10 +402,10 @@ function renderMenuContent() {
   if (capMenu === '4_final') { renderFinalCompare(el); return; }
 
   let html = '';
-  // 1_original: 원본 위에 2배율 박스 + best 박스 + 이동 방향 오버레이
+  // 1_original: 원본 위에 1.4배율 박스 + best 박스 + 이동 방향 오버레이
   if (capMenu === '1_original' && groups.length) {
     html += `<div class="panel" style="margin-bottom:20px;">
-      <div class="metric-title" style="font-size:13px;">구도 이동 시각화 (2배율 박스 → best 박스, 각 중심 잇기)</div>
+      <div class="metric-title" style="font-size:13px;">구도 이동 시각화 (1.4배율 박스 → best 박스, 각 중심 잇기)</div>
       <div class="image-frame" style="background:#0b1020;"><canvas id="orig-overlay" style="display:block;width:100%;height:auto;"></canvas></div>
       <div id="orig-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
     </div>`;
@@ -444,7 +444,7 @@ function drawOriginalOverlay(group) {
       ctx.fillStyle = color; ctx.fillRect(l, ty, tw + 12, th);
       ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(label, l + 6, ty + th / 2);
     };
-    drawBox(b2 ? [b2.left, b2.top, b2.right, b2.bottom] : null, '#3b82f6', '2배율(중앙)');
+    drawBox(b2 ? [b2.left, b2.top, b2.right, b2.bottom] : null, '#3b82f6', '1.4배율(중앙)');
     drawBox(bestBox, '#22c55e', 'best');
     if (bestBox) {
       const [l, t, r, b] = bestBox;
@@ -454,7 +454,7 @@ function drawOriginalOverlay(group) {
       const dot = (x, y, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, lw * 2.2, 0, Math.PI * 2); ctx.fill(); };
       dot(icx, icy, '#3b82f6'); dot(bcx, bcy, '#22c55e');
     }
-    const items = ['<span style="color:#3b82f6;">■</span> 2배율(중앙) 박스'];
+    const items = ['<span style="color:#3b82f6;">■</span> 1.4배율(중앙) 박스'];
     if (bestBox) items.push('<span style="color:#22c55e;">■</span> best 박스');
     if (offset) {
       const num = (v) => (typeof v === 'number' ? v.toFixed(1) : v);
@@ -489,8 +489,8 @@ function renderFinalCompare(el) {
     <div class="metric-title" style="font-size:13px;margin-bottom:6px;">원본 vs 최종 비교</div>
     ${delta}
     <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 (original_1x)', fc.original)}${card('최종 (final.jpg)', fc.final)}</div>
-    <div class="metric-title" style="font-size:13px;margin:20px 0 6px;">2배율 비교 (원본 2배 vs 최종 중앙 2배 크롭)</div>
-    <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 2배 (original_2x)', fc.original_2x)}${card('최종 2배 (final.jpg 중앙 2배 크롭)', fc.final_2x)}</div>`;
+    <div class="metric-title" style="font-size:13px;margin:20px 0 6px;">1.4배율 비교 (원본 1.4배 vs 최종 중앙 1.4배 크롭)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 1.4배 (original_2x)', fc.original_2x)}${card('최종 1.4배 (final.jpg 중앙 1.4배 크롭)', fc.final_2x)}</div>`;
 }
 
 function renderGroup(g) {

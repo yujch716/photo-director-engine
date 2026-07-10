@@ -20,7 +20,7 @@ from services.nima_directions import _fully_contains, _object_pixel_boxes  # 잘
 from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_indexed_save_dir
 
-# 중앙 2배율 크롭 기준 배율 스텝(±10%).
+# 중앙 1.4배율 크롭 기준 배율 스텝(±10%).
 ZOOM_STEP = 0.1
 ZOOM_IN_FACTOR = 1.0 + ZOOM_STEP    # 1.1 = 전진(더 좁게 크롭)
 ZOOM_OUT_FACTOR = 1.0 - ZOOM_STEP   # 0.9 = 후진(더 넓게 크롭)
@@ -39,7 +39,7 @@ _SAVE_NAMES = {
 def _zoom_window(size: tuple[int, int], factor: float) -> tuple[int, int, int, int]:
     """factor 배율 크롭이 원본에서 잘라내는 창(픽셀 박스). _zoom_crop과 동일 계산."""
     W, H = size
-    base_w, base_h = 2 * W // 3, 2 * H // 3
+    base_w, base_h = 5 * W // 7, 5 * H // 7
     win_w = max(1, min(round(base_w / factor), W))  # 배율↑ → 창↓, 배율↓ → 창↑
     win_h = max(1, min(round(base_h / factor), H))
     x = (W - win_w) // 2
@@ -48,13 +48,13 @@ def _zoom_window(size: tuple[int, int], factor: float) -> tuple[int, int, int, i
 
 
 def _zoom_crop(img: Image.Image, factor: float) -> Image.Image:
-    """중앙 1.5배율 크롭(창=중앙 2/3)을 기준으로 factor 배율의 크롭을 만든다.
+    """중앙 1.4배율 크롭(창=중앙 5/7)을 기준으로 factor 배율의 크롭을 만든다.
 
     factor>1 이면 더 좁게 크롭(전진 근사), <1 이면 더 넓게 크롭(후진 근사).
-    결과는 항상 기준 창 크기(2W/3 x 2H/3)로 리사이즈해 같은 크기로 맞춘다.
+    결과는 항상 기준 창 크기(5W/7 x 5H/7)로 리사이즈해 같은 크기로 맞춘다.
     """
     W, H = img.size
-    base_w, base_h = 2 * W // 3, 2 * H // 3         # 1.0배율(중앙 1.5배율 뷰) 창 크기
+    base_w, base_h = 5 * W // 7, 5 * H // 7         # 1.0배율(중앙 1.4배율 뷰) 창 크기
     x1, y1, x2, y2 = _zoom_window((W, H), factor)
     crop = img.crop((x1, y1, x2, y2))
     if (x2 - x1, y2 - y1) != (base_w, base_h):

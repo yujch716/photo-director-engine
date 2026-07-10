@@ -25,7 +25,7 @@ def compute_offset(
 
     피사체(best 구도)가 화면 중심에서 얼마나(dr) 어느 방향(theta_deg)으로 벗어났는지를
     순수 화면 좌표로만 낸다. 특정 드론의 forward/전후진 등으로 변환하지 않는다(클라이언트 몫).
-    줌(전진/후진)도 계산하지 않는다: 후보 창이 항상 2배율 크기라 best 박스도 늘 같은 크기.
+    줌(전진/후진)도 계산하지 않는다: 후보 창이 항상 1.4배율 크기라 best 박스도 늘 같은 크기.
 
     Args:
         best_source_box: 1x 좌표계의 best 크롭 박스 [left, top, right, bottom].

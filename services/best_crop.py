@@ -120,7 +120,7 @@ def select_best_crop(
     input_dir: Path,
     output_dir: Path,
     bank_dir: Path | None = None,
-    zoom_ratio: float = 1.5,
+    zoom_ratio: float = 1.4,
     cols: int = 8,
     rows: int = 6,
     contain_thres: float = 0.90,
@@ -141,7 +141,7 @@ def select_best_crop(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     img_1x_path = find_file(input_dir, ["original_1x.jpg", "original_1x.png", "1x.jpg", "1x.png"], ["*original*1x*.jpg", "*original*1x*.png", "*1x*.jpg", "*1x*.png"])
-    # 1.5배 확대본. 새 파일명 original_1_5x 우선, 옛 데이터 호환으로 original_2x/2x도 허용.
+    # 1.4배 확대본. 새 파일명 original_1_5x 우선, 옛 데이터 호환으로 original_2x/2x도 허용.
     img_2x_path = find_file(
         input_dir,
         ["original_1_5x.jpg", "original_1_5x.png", "original_2x.jpg", "original_2x.png", "1_5x.jpg", "2x.jpg", "2x.png"],

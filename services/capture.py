@@ -84,10 +84,10 @@ def process_capture(
 
     (capture_dir / "original_1x.jpg").write_bytes(image_bytes)
 
-    # 정가운데를 1.5배율로 줌 땡긴 사진 저장
+    # 정가운데를 1.4배율로 줌 땡긴 사진 저장
     base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = base_img.size
-    zoom_box = (W // 6, H // 6, W - W // 6, H - H // 6)  # 중앙 2/3 영역(1.5배)
+    zoom_box = (W // 7, H // 7, W - W // 7, H - H // 7)  # 중앙 5/7 영역(1.4배)
     zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
     zoom_buf = io.BytesIO()
     zoomed.save(zoom_buf, format="JPEG")
@@ -156,8 +156,8 @@ def process_capture(
         "candidate_labels": nearby_names,
         "tags": tags,
         "targets": target_list,
-        # original_1_5x.jpg가 원본에서 잘라낸 영역(중앙 2/3, 1.5배)의 픽셀 좌표.
-        # (필드명 original_2x는 뷰어 호환 위해 유지 — 값은 1.5배 박스)
+        # original_1_5x.jpg가 원본에서 잘라낸 영역(중앙 5/7, 1.4배)의 픽셀 좌표.
+        # (필드명 original_2x는 뷰어 호환 위해 유지 — 값은 1.4배 박스)
         "original_2x": {
             "left": zoom_box[0],
             "top": zoom_box[1],
@@ -168,7 +168,7 @@ def process_capture(
     }
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # 앞단(2배율/크롭/CLIP/report.json)이 끝난 뒤 best 크롭 + 드론 오프셋으로 이어붙임.
+    # 앞단(1.4배율/크롭/CLIP/report.json)이 끝난 뒤 best 크롭 + 드론 오프셋으로 이어붙임.
     # best_crop은 report.json을 읽고, report.json은 여기서만 관리한다(write_report=False).
     best, drone_offset = _run_best_crop_pipeline(capture_dir, (W, H))
 

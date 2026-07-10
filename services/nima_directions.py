@@ -1,7 +1,7 @@
-"""NIMA 세부조정: 현재 프레임에서 9방향 2배율 크롭을 만들어 각각 미학 점수(NIMA)를 매긴다.
+"""NIMA 세부조정: 현재 프레임에서 9방향 1.4배율 크롭을 만들어 각각 미학 점수(NIMA)를 매긴다.
 
 정점 근처에서 "어느 방향으로 살짝 옮기면 구도가 더 좋아지는지"를 고르는 용도.
-중앙(center) + 상하좌우 + 대각선 4개 = 9방향의 2배율 크롭 창을 만들어 NIMA로 채점하고,
+중앙(center) + 상하좌우 + 대각선 4개 = 9방향의 1.4배율 크롭 창을 만들어 NIMA로 채점하고,
 최고점 방향을 반환한다.
 
 기존 models.nima.run_nima_score를 그대로 재사용(모델은 lazy singleton으로 1회 로드).
@@ -42,12 +42,12 @@ DIRECTIONS: dict[str, tuple[int, int]] = {
 
 
 def _make_direction_windows(img: Image.Image) -> dict[str, tuple[int, int, int, int]]:
-    """9방향 1.5배율 크롭 창(중앙 2/3 크기 창을 방향별로 이동)의 픽셀 박스를 만든다.
+    """9방향 1.4배율 크롭 창(중앙 5/7 크기 창을 방향별로 이동)의 픽셀 박스를 만든다.
 
     반환: {방향: (x1, y1, x2, y2)}. 밖으로 나가면 이미지 안으로 clamp.
     """
     W, H = img.size
-    cw, ch = 2 * W // 3, 2 * H // 3              # 1.5배율 뷰 = 중앙 2/3 크기
+    cw, ch = 5 * W // 7, 5 * H // 7              # 1.4배율 뷰 = 중앙 5/7 크기
     cx0, cy0 = (W - cw) // 2, (H - ch) // 2       # 중앙 창의 좌상단
     shift_x = round(cw * CROP_SHIFT_RATIO)
     shift_y = round(ch * CROP_SHIFT_RATIO)
@@ -136,7 +136,7 @@ def find_best_nima_direction(
     session_id: str | None = None,
     save: bool | None = None,
 ) -> dict[str, Any]:
-    """현재 프레임의 9방향 1.5배율 크롭에 NIMA를 매겨 최고 방향을 반환한다.
+    """현재 프레임의 9방향 1.4배율 크롭에 NIMA를 매겨 최고 방향을 반환한다.
 
     bbox(선택): 대상 객체의 정규화 [cx,cy,w,h](또는 그 리스트). 주어지면 그 객체가
     창 밖으로 잘리는 방향은 후보에서 제외한다. 모든 방향이 잘리면 제외를 무시(전체 사용).
