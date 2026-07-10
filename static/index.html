@@ -15,6 +15,7 @@
       <button class="active" data-page="yolo">YOLO Detection</button>
       <button data-page="nima">NIMA Score</button>
       <button data-page="samp">SAMP Score</button>
+      <button data-page="topiq">TOPIQ Score</button>
       <button data-page="kakao-map">Kakao Map</button>
       <button data-page="captures">Drone</button>
     </nav>
@@ -118,6 +119,35 @@
       </div>
     </section>
 
+    <section class="page" id="page-topiq">
+      <h2>TOPIQ Score Test — 무참조 이미지 품질</h2>
+
+      <div class="toolbar">
+        <label class="upload-label">
+          Select Image
+          <input id="topiq-input" type="file" accept="image/*" hidden />
+        </label>
+        <span class="file-name" id="topiq-file-name"></span>
+      </div>
+
+      <p class="status" id="topiq-status"></p>
+      <div class="error" id="topiq-error"></div>
+
+      <div class="result-grid" id="topiq-result">
+        <div class="panel">
+          <h3>Input Image</h3>
+          <div class="image-frame">
+            <img id="topiq-img" src="" alt="TOPIQ input" />
+          </div>
+        </div>
+        <div class="panel">
+          <h3>TOPIQ Result</h3>
+          <div class="score" id="topiq-score">0.00</div>
+          <div class="score-meta" id="topiq-meta"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="page" id="page-kakao-map">
       <h2>Kakao Map — 주변 관광명소</h2>
 
@@ -182,6 +212,6 @@
     </section>
   </main>
 
-  <script src="/static/app.js?v=7"></script>
+  <script src="/static/app.js?v=8"></script>
 </body>
 </html>

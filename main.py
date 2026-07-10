@@ -286,12 +286,38 @@ async def samp_score(image: UploadFile):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@app.post("/nima-lateral")
-async def nima_lateral(image: UploadFile, session_id: str | None = Form(default=None)):
-    """현재 프레임의 9방향(중앙+상하좌우+대각선) 2배율 크롭에 NIMA를 매겨 최고 방향을 반환한다."""
+@app.post("/topiq-score")
+async def topiq_score(image: UploadFile):
+    """이미지 한 장의 TOPIQ(pyiqa) 무참조 품질 점수를 반환한다."""
     contents = await image.read()
+
     try:
-        return find_best_nima_direction(contents, session_id=session_id)
+        from models.topiq import run_topiq_score
+        return run_topiq_score(contents, image.filename or "image.jpg")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/nima-lateral")
+async def nima_lateral(
+    image: UploadFile,
+    session_id: str | None = Form(default=None),
+    bbox: str | None = Form(default=None),
+):
+    """현재 프레임의 9방향(중앙+상하좌우+대각선) 1.5배율 크롭에 NIMA를 매겨 최고 방향을 반환한다.
+
+    bbox(선택): 대상 객체의 정규화 [cx,cy,w,h] JSON(또는 박스 리스트). 주면 그 객체가
+    창 밖으로 잘리는 방향은 후보에서 제외한다.
+    """
+    contents = await image.read()
+    parsed_bbox = None
+    if bbox is not None:
+        try:
+            parsed_bbox = json.loads(bbox)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"bbox JSON 파싱 실패: {exc}") from exc
+    try:
+        return find_best_nima_direction(contents, bbox=parsed_bbox, session_id=session_id)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -301,15 +327,23 @@ async def nima_depth(
     image: UploadFile,
     direction: str | None = Form(default=None),
     session_id: str | None = Form(default=None),
+    bbox: str | None = Form(default=None),
 ):
     """현재 프레임의 배율 크롭 NIMA로 전진/후진을 판단한다.
 
     direction 없음=첫 회차(1.0/1.1/0.9 양방향 비교로 방향 확정),
     direction=forward|backward=이후 회차(그 방향 배율 + 1.0만 평가).
+    bbox(선택): 대상 객체의 정규화 [cx,cy,w,h] JSON. 주면 그 객체가 잘리는 배율 크롭은 제외.
     """
     contents = await image.read()
+    parsed_bbox = None
+    if bbox is not None:
+        try:
+            parsed_bbox = json.loads(bbox)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"bbox JSON 파싱 실패: {exc}") from exc
     try:
-        return evaluate_zoom(contents, direction, session_id=session_id)
+        return evaluate_zoom(contents, direction, bbox=parsed_bbox, session_id=session_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

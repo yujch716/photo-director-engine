@@ -180,6 +180,42 @@ document.getElementById('samp-input').addEventListener('change', async (event) =
   event.target.value = '';
 });
 
+// ── TOPIQ Score (무참조 품질) ─────────────────────────────────────────
+document.getElementById('topiq-input').addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('topiq-status');
+  const errorEl = document.getElementById('topiq-error');
+  const resultEl = document.getElementById('topiq-result');
+  document.getElementById('topiq-file-name').textContent = file.name;
+
+  status.textContent = 'Running TOPIQ... first run may download model weights (~170MB).';
+  errorEl.style.display = 'none';
+  resultEl.classList.remove('visible');
+  document.getElementById('topiq-img').src = URL.createObjectURL(file);
+
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch('/topiq-score', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
+
+    status.textContent = '';
+    document.getElementById('topiq-score').textContent = data.score.toFixed(4);
+    const dir = data.lower_better ? '낮을수록 좋음' : '높을수록 좋음';
+    document.getElementById('topiq-meta').textContent =
+      `metric: ${data.metric} · ${dir} · Device: ${data.device}`;
+    resultEl.classList.add('visible');
+  } catch (err) {
+    showError(errorEl, status, err.message);
+  }
+
+  event.target.value = '';
+});
+
 // ── Kakao Map (Leaflet + OpenStreetMap) ───────────────────────────────
 let _leafletMap = null;
 let _leafletMarkers = [];
