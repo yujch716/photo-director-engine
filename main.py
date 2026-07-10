@@ -19,6 +19,7 @@ from models.yolo_world import run_yolo_world
 from models.homigot_hand_yolo8n import run_homigot_hand_yolo
 from services.capture import process_capture
 from services.final_shot import save_final_shot
+from services.initial_shot import save_initial_shot
 from services.kakao_places import get_landmarks_by_keyword
 from services.nima_directions import find_best_nima_direction
 from services.nima_zoom import evaluate_zoom
@@ -67,13 +68,14 @@ def get_capture(name: str):
         p.name for p in folder.iterdir()
         if p.suffix.lower() in {".jpg", ".jpeg", ".png"}
     )
-    # 원본 1x: "1x"가 든 파일 우선, 없으면 crop/2x/best가 아닌 첫 이미지
+    # 원본 1x: "original_1x" 우선, 없으면 crop/확대본(1_5x·2x)/best가 아닌 첫 이미지
     original = next(
-        (f for f in images if "1x" in f.lower()), None
+        (f for f in images if "original_1x" in f.lower()), None
     ) or next(
-        (f for f in images if all(k not in f.lower() for k in ("crop", "2x", "best"))), None
+        (f for f in images if all(k not in f.lower() for k in ("crop", "1_5x", "2x", "best"))), None
     )
-    original_2x = next((f for f in images if "2x" in f.lower()), None)
+    # 확대본: 새 파일명 1_5x 우선, 옛 2x도 허용
+    original_2x = next((f for f in images if "1_5x" in f.lower() or "2x" in f.lower()), None)
     crops = [f for f in images if "crop" in f.lower()]
     best = "best.jpg" if "best.jpg" in images else None
 
@@ -181,45 +183,66 @@ def get_session(session_id: str):
         else:
             menus[step] = [_collect_group(sd, step)]
 
-    # 4_final 비교: 원본(1_original/original_1x) vs 최종(4_final/final.jpg) + 각 NIMA.
+    # 4_final 비교: 최초(1_original/initial) · 원본(1_original/original_1x) vs 최종(4_final/final.jpg) + 각 NIMA.
     final_compare = None
     fin = root / "4_final" / "final.jpg"
-    if fin.exists():
+    init = root / "1_original" / "initial.jpg"     # /capture 전 최초 촬영본
+    if fin.exists() or init.exists():
         def _nima_of(p: pathlib.Path):
             try:
                 return round(float(run_nima_score(p.read_bytes())["score"]), 4)
             except Exception:
                 return None
 
+        # 최초 촬영본(2배 크롭 없음). NIMA는 nima-score.json 재사용, 없으면 계산.
+        initial = None
+        if init.exists():
+            init_nima = None
+            for e in (nima_score or []):
+                if e.get("stage") == "1_original/initial":
+                    init_nima = e.get("nima")
+            if init_nima is None:
+                init_nima = _nima_of(init)
+            initial = {"url": _rel_url(init), "nima": init_nima}
+
         # 최종 점수는 nima-score.json의 4_final 항목 재사용, 없으면 계산.
-        fin_nima = None
-        for e in (nima_score or []):
-            if e.get("stage") == "4_final":
-                fin_nima = e.get("nima")
-        if fin_nima is None:
-            fin_nima = _nima_of(fin)
-
-        orig = root / "1_original" / "original_1x.jpg"
-
-        # 원본 2배(1_original/original_2x.jpg): 파일 그대로 URL + NIMA
-        orig2x = root / "1_original" / "original_2x.jpg"
-
-        # 최종 2배: final.jpg의 중앙 절반을 2배 크롭해 base64로 실어보냄(파일 저장 안 함) + NIMA
-        from services.tilt_peak import _center_2x_jpeg
+        final = None
+        original = None
+        original_2x = None
         final_2x = None
-        try:
-            crop_bytes = _center_2x_jpeg(fin.read_bytes())
-            final_2x = {
-                "url": "data:image/jpeg;base64," + base64.b64encode(crop_bytes).decode(),
-                "nima": round(float(run_nima_score(crop_bytes)["score"]), 4),
-            }
-        except Exception:
-            final_2x = None
+        if fin.exists():
+            fin_nima = None
+            for e in (nima_score or []):
+                if e.get("stage") == "4_final":
+                    fin_nima = e.get("nima")
+            if fin_nima is None:
+                fin_nima = _nima_of(fin)
+            final = {"url": _rel_url(fin), "nima": fin_nima}
+
+            orig = root / "1_original" / "original_1x.jpg"
+            # 확대본: 새 파일명 original_1_5x 우선, 옛 데이터는 original_2x 폴백.
+            orig2x = root / "1_original" / "original_1_5x.jpg"
+            if not orig2x.exists():
+                orig2x = root / "1_original" / "original_2x.jpg"
+            original = ({"url": _rel_url(orig), "nima": _nima_of(orig)} if orig.exists() else None)
+            original_2x = ({"url": _rel_url(orig2x), "nima": _nima_of(orig2x)} if orig2x.exists() else None)
+
+            # 최종 2배: final.jpg의 중앙 절반을 2배 크롭해 base64로 실어보냄(파일 저장 안 함) + NIMA
+            from services.tilt_peak import _center_2x_jpeg
+            try:
+                crop_bytes = _center_2x_jpeg(fin.read_bytes())
+                final_2x = {
+                    "url": "data:image/jpeg;base64," + base64.b64encode(crop_bytes).decode(),
+                    "nima": round(float(run_nima_score(crop_bytes)["score"]), 4),
+                }
+            except Exception:
+                final_2x = None
 
         final_compare = {
-            "original": ({"url": _rel_url(orig), "nima": _nima_of(orig)} if orig.exists() else None),
-            "final": {"url": _rel_url(fin), "nima": fin_nima},
-            "original_2x": ({"url": _rel_url(orig2x), "nima": _nima_of(orig2x)} if orig2x.exists() else None),
+            "initial": initial,          # 최초 촬영본(2배 없음)
+            "original": original,
+            "final": final,
+            "original_2x": original_2x,
             "final_2x": final_2x,
         }
 
@@ -340,11 +363,11 @@ async def tilt_peak(
     angles: str = Form(...),
     session_id: str | None = Form(default=None),
 ):
-    """틸트 sweep 프레임들에 NIMA를 매겨 최고 점수 프레임(각도)을 반환한다.
+    """틸트 sweep 프레임들에 SAMP 구도 점수를 매겨 최고 점수 프레임(각도)을 반환한다.
 
     입력: multipart — frames(여러 장, 위→아래 시간순), angles(JSON 각도 배열, 프레임과 같은 순서·개수), session_id.
-    반환: {peak_index, peak_angle, peak_score, scores, angles, frame_count, timing_ms}
-    저장: drone-data/<session_id>/tilt/
+    반환(슬림): {peak_angle, peak_score, saved}  — 상세는 scores.json + 콘솔 로그로 확인.
+    저장: drone-data/<session_id>/3_detail-move/tilt/
     """
     frame_bytes = [await f.read() for f in frames]
     try:
@@ -397,17 +420,23 @@ async def scan_result(
     return save_scan_result(img_bytes, meta_json=meta, session_id=session_id)
 
 
+@app.post("/initial-shot")
+async def initial_shot(
+    image: UploadFile,
+    session_id: str | None = Form(default=None),
+    meta: str | None = Form(default=None),
+):
+    """/capture 전에 찍는 최초 이미지를 1_original/initial.jpg 로 저장한다(final-shot과 동일 기능)."""
+    img_bytes = await image.read()
+    return save_initial_shot(img_bytes, session_id=session_id, meta_json=meta)
+
+
 @app.post("/final-shot")
 async def final_shot(
     image: UploadFile,
     session_id: str | None = Form(default=None),
     meta: str | None = Form(default=None),
 ):
-    """최종 촬영 이미지(초점 조정 후)를 drone-data/<session_id>/final/ 에 저장한다.
-
-    입력: multipart — image(필수), session_id, meta(선택 JSON 문자열).
-    반환: {"saved": "<session_id>", "path": "/drone-data/.../final.jpg", "message": "최종 저장 완료"}
-    """
     img_bytes = await image.read()
     return save_final_shot(img_bytes, session_id=session_id, meta_json=meta)
 

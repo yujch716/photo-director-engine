@@ -446,7 +446,11 @@ function renderFinalCompare(el) {
     const d = fc.final.nima - fc.original.nima;
     delta = `<div style="margin:6px 0 16px;font-size:14px;">최종 − 원본 NIMA: <b style="color:${d >= 0 ? '#16a34a' : '#b91c1c'};">${d >= 0 ? '+' : ''}${d.toFixed(4)}</b></div>`;
   }
-  el.innerHTML = `<div class="metric-title" style="font-size:13px;margin-bottom:6px;">원본 vs 최종 비교</div>
+  const initialBlock = fc.initial ? `
+    <div class="metric-title" style="font-size:13px;margin-bottom:6px;">최초 촬영본 (initial)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;">${card('최초 (initial.jpg)', fc.initial)}</div>` : '';
+  el.innerHTML = `${initialBlock}
+    <div class="metric-title" style="font-size:13px;margin-bottom:6px;">원본 vs 최종 비교</div>
     ${delta}
     <div style="display:flex;flex-wrap:wrap;gap:16px;">${card('원본 (original_1x)', fc.original)}${card('최종 (final.jpg)', fc.final)}</div>
     <div class="metric-title" style="font-size:13px;margin:20px 0 6px;">2배율 비교 (원본 2배 vs 최종 중앙 2배 크롭)</div>

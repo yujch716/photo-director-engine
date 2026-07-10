@@ -26,10 +26,10 @@ SAVE_DEBUG = True
 
 
 def _center_2x_jpeg(image_bytes: bytes) -> bytes:
-    """이미지의 중앙 절반(2배율 뷰)을 잘라 JPEG 바이트로 반환(색상 유지). scan_peak과 동일 방식."""
+    """이미지의 중앙 2/3(1.5배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지). scan_peak과 동일 방식."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = img.size
-    crop = img.crop((W // 4, H // 4, W - W // 4, H - H // 4))
+    crop = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
     buf = io.BytesIO()
     crop.save(buf, format="JPEG")
     return buf.getvalue()
@@ -67,8 +67,9 @@ def find_tilt_peak(
 ) -> dict[str, Any]:
     """프레임들에 SAMP 구도 점수를 매겨 최고 점수 프레임(각도)을 반환한다.
 
-    Returns:
-        {metric, peak_index, peak_angle, peak_score, scores, angles, frame_count, timing_ms}
+    Returns (슬림): {peak_angle, peak_score, saved}
+        앱이 실제로 쓰는 값만. 상세(metric/peak_index/scores/angles/frame_count/timing_ms)는
+        scores.json 저장 + 서버 콘솔 로그로 확인한다(내부 계산·저장은 그대로 유지).
     Raises:
         ValueError: frames가 비었거나 angles 개수가 frames와 다를 때.
     """
@@ -116,12 +117,19 @@ def find_tilt_peak(
         },
     }
 
+    # scores.json에는 full result(scores/angles/timing/metric/peak_index 전부) 저장.
+    saved = None
     if SAVE_DEBUG if save is None else save:
         try:
-            # 저장/로그도 중앙 2배 크롭본으로.
+            # 저장/로그도 중앙 1.5배 크롭본으로.
             saved = _save_tilt(cropped, angles, result, session_id=session_id)
             print(f"[tilt-peak] saved: drone-data/{saved}")
         except Exception as e:
             print(f"[tilt-peak] WARN 저장 실패(무시): {e}")
 
-    return result
+    # 응답은 앱이 쓰는 것만 슬림하게(상세는 scores.json + 콘솔 로그로 확인).
+    return {
+        "peak_angle": peak_angle,   # 앱이 짐벌을 맞출 각도(핵심)
+        "peak_score": peak_score,   # 토스트·로그용
+        "saved": saved,             # 상세 확인용 폴더(scores.json 위치)
+    }

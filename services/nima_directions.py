@@ -42,9 +42,9 @@ DIRECTIONS: dict[str, tuple[int, int]] = {
 
 
 def _make_direction_crops(img: Image.Image) -> dict[str, Image.Image]:
-    """9방향 2배율 크롭(중앙 절반 크기 창을 방향별로 이동)을 만든다. 밖으로 나가면 clamp."""
+    """9방향 1.5배율 크롭(중앙 2/3 크기 창을 방향별로 이동)을 만든다. 밖으로 나가면 clamp."""
     W, H = img.size
-    cw, ch = W // 2, H // 2                      # 2배율 뷰 = 중앙 절반 크기
+    cw, ch = 2 * W // 3, 2 * H // 3              # 1.5배율 뷰 = 중앙 2/3 크기
     cx0, cy0 = (W - cw) // 2, (H - ch) // 2       # 중앙 창의 좌상단
     shift_x = round(cw * CROP_SHIFT_RATIO)
     shift_y = round(ch * CROP_SHIFT_RATIO)

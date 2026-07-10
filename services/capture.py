@@ -84,14 +84,14 @@ def process_capture(
 
     (capture_dir / "original_1x.jpg").write_bytes(image_bytes)
 
-    # 정가운데를 2배율로 줌 땡긴 사진 저장
+    # 정가운데를 1.5배율로 줌 땡긴 사진 저장
     base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = base_img.size
-    zoom_box = (W // 4, H // 4, W - W // 4, H - H // 4)  # 중앙 절반 영역
+    zoom_box = (W // 6, H // 6, W - W // 6, H - H // 6)  # 중앙 2/3 영역(1.5배)
     zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
     zoom_buf = io.BytesIO()
     zoomed.save(zoom_buf, format="JPEG")
-    (capture_dir / "original_2x.jpg").write_bytes(zoom_buf.getvalue())
+    (capture_dir / "original_1_5x.jpg").write_bytes(zoom_buf.getvalue())
 
     nearby_places = get_landmarks_by_keyword(lat, lng) if lat is not None and lng is not None else []
     nearby_names = [p["name"] for p in nearby_places]
@@ -156,7 +156,8 @@ def process_capture(
         "candidate_labels": nearby_names,
         "tags": tags,
         "targets": target_list,
-        # original_2x.jpg가 원본에서 잘라낸 영역(중앙 절반)의 픽셀 좌표
+        # original_1_5x.jpg가 원본에서 잘라낸 영역(중앙 2/3, 1.5배)의 픽셀 좌표.
+        # (필드명 original_2x는 뷰어 호환 위해 유지 — 값은 1.5배 박스)
         "original_2x": {
             "left": zoom_box[0],
             "top": zoom_box[1],
@@ -187,10 +188,11 @@ def process_capture(
         except Exception as e:
             print(f"[WARN] report.json에 best 저장 실패(무시): {e}")
 
-    # 단계별 NIMA 누적 로그(선택 = best 크롭, 없으면 원본 1x). 파이프라인 시작점.
+    # 단계별 NIMA 누적 로그(선택 = best 크롭, 없으면 원본 1x).
+    # '최초' 지점은 /initial-shot("1_original/initial")이고, 여기는 best 크롭 지점.
     best_path = capture_dir / "best.jpg"
     sel_bytes = best_path.read_bytes() if best_path.exists() else image_bytes
-    append_session_nima(session_id, "1_original", image_bytes=sel_bytes, data_dir=TEST_DATA_DIR)
+    append_session_nima(session_id, "1_original/best", image_bytes=sel_bytes, data_dir=TEST_DATA_DIR)
 
     # HTTP 응답은 드론이 실제로 쓰는 것만 슬림하게 반환한다.
     # (location/nearby_landmarks/tags/results/reference 태그 등 상세는 result.json에 다 저장돼 있고

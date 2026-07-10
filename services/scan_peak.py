@@ -27,10 +27,10 @@ DEFAULT_SSIM_SIZE = 256
 
 
 def _center_2x_jpeg(image_bytes: bytes) -> bytes:
-    """이미지의 중앙 절반(2배율 뷰)을 잘라 JPEG 바이트로 반환(색상 유지)."""
+    """이미지의 중앙 2/3(1.5배율 뷰)를 잘라 JPEG 바이트로 반환(색상 유지)."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     W, H = img.size
-    crop = img.crop((W // 4, H // 4, W - W // 4, H - H // 4))
+    crop = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
     buf = io.BytesIO()
     crop.save(buf, format="JPEG")
     return buf.getvalue()
@@ -81,15 +81,15 @@ def save_scan_peak_inputs(
 
 
 def _load_gray(image_bytes: bytes, size: int, crop_center: bool = False) -> np.ndarray:
-    """이미지 바이트 → (선택 중앙 2배율 크롭) grayscale + (size×size) uint8 배열. SSIM 입력용.
+    """이미지 바이트 → (선택 중앙 1.5배율 크롭) grayscale + (size×size) uint8 배열. SSIM 입력용.
 
-    crop_center=True면 중앙 절반(= 2배율 뷰)만 잘라서 사용한다.
+    crop_center=True면 중앙 2/3(= 1.5배율 뷰)만 잘라서 사용한다.
     (capture의 original_2x와 동일한 crop box)
     """
     img = Image.open(io.BytesIO(image_bytes))
     if crop_center:
         W, H = img.size
-        img = img.crop((W // 4, H // 4, W - W // 4, H - H // 4))
+        img = img.crop((W // 6, H // 6, W - W // 6, H - H // 6))  # 1.5배: 중앙 2/3
     img = img.convert("L").resize((size, size))
     return np.asarray(img, dtype=np.uint8)
 

@@ -1,6 +1,6 @@
 """정점 도착 후 촬영 결과 저장.
 
-스캔으로 정점에 도착한 뒤 촬영한 사진(arrived.jpg)과 그 중앙 2배율 크롭(arrived_2x.jpg),
+스캔으로 정점에 도착한 뒤 촬영한 사진(arrived.jpg)과 그 중앙 1.5배율 크롭(arrived_1_5x.jpg),
 선택적으로 최종구도(target.jpg)와 메타데이터(meta.json)를
 drone-data/result/<타임스탬프>/ 아래에 저장한다.
 
@@ -30,12 +30,12 @@ def save_scan_result(
     """정점 도착 사진(+선택 meta)을 저장한다. (target은 받지 않음 — 2_scan에 이미 best.jpg 존재)
 
     저장 파일(세션이면 2_scan 폴더 공유):
-        arrived_1x.jpg  : 정점 도착 후 촬영 원본
-        arrived_2x.jpg  : arrived의 중앙 절반을 2배율로 확대한 이미지(capture의 original_2x와 동일 방식)
-        meta.json       : (선택) 메타데이터
+        arrived_1x.jpg    : 정점 도착 후 촬영 원본
+        arrived_1_5x.jpg  : arrived의 중앙 2/3을 1.5배율로 확대한 이미지(capture의 original_1_5x와 동일 방식)
+        meta.json         : (선택) 메타데이터
 
     Args:
-        image_bytes: 정점 도착 후 촬영 사진(JPEG) — arrived_1x.jpg / arrived_2x.jpg 로 저장.
+        image_bytes: 정점 도착 후 촬영 사진(JPEG) — arrived_1x.jpg / arrived_1_5x.jpg 로 저장.
         meta_json: (선택) JSON 문자열(theta, peak_index, 되돌아간 거리 등) — meta.json 으로 저장.
         session_id: (선택) 있으면 drone-data/<session_id>/2_scan/ 에 저장(scan-peak와 공유).
         data_dir: 저장 루트(기본 drone-data).
@@ -50,19 +50,19 @@ def save_scan_result(
 
     (folder / "arrived_1x.jpg").write_bytes(image_bytes)
 
-    # arrived의 중앙 절반을 2배율로 확대(capture.py의 original_2x와 동일 방식)해 저장.
+    # arrived의 중앙 2/3을 1.5배율로 확대(capture.py의 original_2x와 동일 방식)해 저장.
     arrived_2x_bytes = None
     try:
         base_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         W, H = base_img.size
-        zoom_box = (W // 4, H // 4, W - W // 4, H - H // 4)  # 중앙 절반 영역
+        zoom_box = (W // 6, H // 6, W - W // 6, H - H // 6)  # 중앙 2/3 영역(1.5배)
         zoomed = base_img.crop(zoom_box).resize((W, H), Image.LANCZOS)
         buf = io.BytesIO()
         zoomed.save(buf, format="JPEG")
         arrived_2x_bytes = buf.getvalue()
-        (folder / "arrived_2x.jpg").write_bytes(arrived_2x_bytes)
+        (folder / "arrived_1_5x.jpg").write_bytes(arrived_2x_bytes)
     except Exception as e:
-        print(f"[WARN] arrived_2x.jpg 생성 실패(무시): {e}")
+        print(f"[WARN] arrived_1_5x.jpg 생성 실패(무시): {e}")
 
     # 단계별 NIMA 누적 로그(선택 = 도착 사진의 2배 크롭, 없으면 원본).
     append_session_nima(session_id, "2_scan/arrived", image_bytes=(arrived_2x_bytes or image_bytes), data_dir=base)

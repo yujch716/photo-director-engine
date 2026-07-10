@@ -36,13 +36,13 @@ _SAVE_NAMES = {
 
 
 def _zoom_crop(img: Image.Image, factor: float) -> Image.Image:
-    """중앙 2배율 크롭(창=중앙 절반)을 기준으로 factor 배율의 크롭을 만든다.
+    """중앙 1.5배율 크롭(창=중앙 2/3)을 기준으로 factor 배율의 크롭을 만든다.
 
     factor>1 이면 더 좁게 크롭(전진 근사), <1 이면 더 넓게 크롭(후진 근사).
-    결과는 항상 기준 창 크기(W/2 x H/2)로 리사이즈해 같은 크기로 맞춘다.
+    결과는 항상 기준 창 크기(2W/3 x 2H/3)로 리사이즈해 같은 크기로 맞춘다.
     """
     W, H = img.size
-    base_w, base_h = W // 2, H // 2                 # 1.0배율(중앙 2배율 뷰) 창 크기
+    base_w, base_h = 2 * W // 3, 2 * H // 3         # 1.0배율(중앙 1.5배율 뷰) 창 크기
     win_w = max(1, min(round(base_w / factor), W))  # 배율↑ → 창↓, 배율↓ → 창↑
     win_h = max(1, min(round(base_h / factor), H))
     x = (W - win_w) // 2
