@@ -18,6 +18,7 @@ from models.yolo import run_yolo
 from models.yolo_world import run_yolo_world
 from models.homigot_hand_yolo8n import run_homigot_hand_yolo
 from services.capture import process_capture
+from services.detail_refine import refine_detail
 from services.final_shot import save_final_shot
 from services.initial_shot import save_initial_shot
 from services.kakao_places import get_landmarks_by_keyword
@@ -346,6 +347,24 @@ async def nima_depth(
         return evaluate_zoom(contents, direction, bbox=parsed_bbox, session_id=session_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/detail-refine")
+async def detail_refine(
+    image: UploadFile,
+    targets: str = Form(default="[]"),
+    session_id: str | None = Form(default=None),
+):
+    """3단계 세부조정: GAIC+TOPIQ로 정밀 crop 선택 → 이동 방향(dx,dy,theta)과 target 이미지를 반환한다.
+
+    NIMA 9방향 반복(/nima-lateral) 대체. 48분할→잘림필터→GAIC top3→27변형→그룹top1→TOPIQ 최고1장.
+    입력(multipart): image(현재 프레임), targets(JSON [{class,bbox:[cx,cy,w,h]}]), session_id.
+    """
+    contents = await image.read()
+    try:
+        return refine_detail(contents, targets=json.loads(targets), session_id=session_id)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 @app.post("/capture")
 async def capture(
