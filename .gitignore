@@ -32,3 +32,5 @@ test-data/
 
 # 파생 캐시 (patch 임베딩에서 자동 생성되는 코스 벡터)
 config/coarse.npy
+*.pth
+*.pt
