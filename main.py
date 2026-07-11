@@ -104,7 +104,7 @@ def nearby_landmarks(lat: float, lng: float, radius_m: int = 1000):
 
 # ── 세션 로그 뷰어용 ─────────────────────────────────────────────────────
 _IMG_EXTS = {".jpg", ".jpeg", ".png"}
-_SESSION_STEPS = ["1_original", "2_scan", "3_detail-move", "4_final"]
+_SESSION_STEPS = ["1_original", "2_scan", "3_detail-refine", "4_tilt", "5_final"]
 
 
 def _rel_url(f: pathlib.Path) -> str:
@@ -134,7 +134,7 @@ def _collect_group(folder: pathlib.Path, label: str) -> dict:
 
 
 def _leaf_groups(folder: pathlib.Path) -> list[dict]:
-    """중첩 폴더(3_detail-move)에서 파일이 들어있는 leaf 폴더들을 그룹으로 모은다."""
+    """중첩 폴더(3_detail-refine)에서 파일이 들어있는 leaf 폴더들을 그룹으로 모은다."""
     groups: list[dict] = []
 
     def walk(d: pathlib.Path, label: str):
@@ -179,14 +179,14 @@ def get_session(session_id: str):
         sd = root / step
         if not sd.is_dir():
             menus[step] = []
-        elif step == "3_detail-move":
+        elif step == "3_detail-refine":
             menus[step] = _leaf_groups(sd)
         else:
             menus[step] = [_collect_group(sd, step)]
 
-    # 4_final 비교: 최초(1_original/initial) · 원본(1_original/original_1x) vs 최종(4_final/final.jpg) + 각 NIMA.
+    # 5_final 비교: 최초(1_original/initial) · 원본(1_original/original_1x) vs 최종(5_final/final.jpg) + 각 NIMA.
     final_compare = None
-    fin = root / "4_final" / "final.jpg"
+    fin = root / "5_final" / "final.jpg"
     init = root / "1_original" / "initial.jpg"     # /capture 전 최초 촬영본
     if fin.exists() or init.exists():
         def _nima_of(p: pathlib.Path):
@@ -206,7 +206,7 @@ def get_session(session_id: str):
                 init_nima = _nima_of(init)
             initial = {"url": _rel_url(init), "nima": init_nima}
 
-        # 최종 점수는 nima-score.json의 4_final 항목 재사용, 없으면 계산.
+        # 최종 점수는 nima-score.json의 5_final 항목 재사용, 없으면 계산.
         final = None
         original = None
         original_2x = None
@@ -214,7 +214,7 @@ def get_session(session_id: str):
         if fin.exists():
             fin_nima = None
             for e in (nima_score or []):
-                if e.get("stage") == "4_final":
+                if e.get("stage") == "5_final":
                     fin_nima = e.get("nima")
             if fin_nima is None:
                 fin_nima = _nima_of(fin)

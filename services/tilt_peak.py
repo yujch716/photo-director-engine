@@ -5,7 +5,7 @@
 "묶음→최고" 구조, 비교 기준이 SSIM/NIMA가 아니라 무참조 SAMP 구도 점수)
 
 기존 models.sampnet.score_image 재사용. 결과/프레임은
-drone-data/<session_id>/3_detail-move/tilt/에 저장.
+drone-data/<session_id>/4_tilt/에 저장.
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ def _save_tilt(
     session_id: str | None = None,
     data_dir: Path | None = None,
 ) -> str:
-    """중앙 1.4배 크롭 프레임들(각도 파일명) + best + scores.json을 <session_id>/3_detail-move/tilt/에 저장."""
+    """중앙 1.4배 크롭 프레임들(각도 파일명) + best + scores.json을 <session_id>/4_tilt/에 저장."""
     base = data_dir or DRONE_DATA_DIR
-    folder = resolve_save_dir(session_id, "3_detail-move/tilt", legacy=base / "tilt" / make_ts(), data_dir=base)
+    folder = resolve_save_dir(session_id, "4_tilt", legacy=base / "tilt" / make_ts(), data_dir=base)
 
     for i, (fb, ang) in enumerate(zip(frame_bytes_list, angles)):
         (folder / f"{i:02d}_{ang:+.1f}deg.jpg").write_bytes(fb)
@@ -55,7 +55,7 @@ def _save_tilt(
         json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     # 단계별 진행 점수 누적 로그(선택 프레임 = peak, 이미 계산된 SAMP peak_score 재사용).
-    append_session_nima(session_id, "3_detail-move/tilt", score=result["peak_score"], data_dir=base)
+    append_session_nima(session_id, "4_tilt", score=result["peak_score"], data_dir=base)
     return str(folder.relative_to(base))
 
 

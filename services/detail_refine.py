@@ -86,17 +86,13 @@ def _score_boxes(frame: Image.Image, boxes: list[tuple[int, int, int, int]], use
 def _save(
     folder: Path,
     frame: Image.Image,
-    all_candidates: list,
     top3: list[dict],
     variants: list[dict],
     report: dict,
     final_crop: Image.Image,
 ) -> None:
+    # 원본 프레임만 이미지로 저장. 48분할 후보는 사진 대신 좌표(report["candidates"])로만 보관.
     (folder / "original_frame.jpg").write_bytes(_jpeg(frame))
-
-    cdir = folder / "candidates"; cdir.mkdir(parents=True, exist_ok=True)
-    for c in all_candidates:
-        (cdir / f"cand_{c.index:02d}.jpg").write_bytes(_jpeg(c.image))
 
     tdir = folder / "top3"; tdir.mkdir(parents=True, exist_ok=True)
     for r, t in enumerate(top3):
@@ -177,6 +173,18 @@ def refine_detail(
     ranked = sorted(zip(filtered, cand_scores), key=lambda p: p[1], reverse=True)
     top3 = [{"index": c.index, "source_box": list(c.source_box), "score": round(float(s), 4)}
             for c, s in ranked[:TOP_K]]
+
+    # 48분할 후보는 사진 대신 좌표만 저장(잘림 필터 통과 여부 + 통과분의 GAIC/TOPIQ 점수).
+    score_by_idx = {c.index: float(s) for c, s in zip(filtered, cand_scores)}
+    candidates_meta = [
+        {
+            "index": c.index,
+            "source_box": list(c.source_box),
+            "passed_filter": c.index in score_by_idx,
+            "score": round(score_by_idx[c.index], 4) if c.index in score_by_idx else None,
+        }
+        for c in candidates
+    ]
     print(f"[detail-refine] 48채점({score_source}) {gaic48_ms:.1f}ms → top{len(top3)}: "
           f"{[(t['index'], t['score']) for t in top3]}")
 
@@ -229,6 +237,7 @@ def refine_detail(
         "n_candidates": len(candidates),
         "n_filtered": len(filtered),
         "filter_status": filter_status,
+        "candidates": candidates_meta,        # 48분할 좌표(사진 대신)
         "top3": top3,
         "variants": variants,                 # 27
         "finalists": finalists,               # 그룹 top1 3장(+topiq)
@@ -244,7 +253,7 @@ def refine_detail(
 
     if folder is not None:
         try:
-            _save(folder, frame, candidates, top3, variants, report, final_crop)
+            _save(folder, frame, top3, variants, report, final_crop)
             print(f"[detail-refine] saved: drone-data/{saved_rel}")
         except Exception as e:
             print(f"[detail-refine] WARN 저장 실패(무시): {e}")

@@ -26,7 +26,7 @@ def save_final_shot(
         {"saved": <session_id 또는 폴더경로>, "path": "/drone-data/.../final.jpg", "message": ...}
     """
     base = data_dir or DRONE_DATA_DIR
-    folder = resolve_save_dir(session_id, "4_final", legacy=base / f"final_shot_{make_ts()}", data_dir=base)
+    folder = resolve_save_dir(session_id, "5_final", legacy=base / f"final_shot_{make_ts()}", data_dir=base)
     rel = str(folder.relative_to(base))
 
     (folder / "final.jpg").write_bytes(image_bytes)
@@ -41,7 +41,7 @@ def save_final_shot(
         )
 
     # 단계별 NIMA 누적 로그(최종 촬영 사진).
-    append_session_nima(session_id, "4_final", image_bytes=image_bytes, data_dir=base)
+    append_session_nima(session_id, "5_final", image_bytes=image_bytes, data_dir=base)
 
     saved = session_id if (session_id and session_id.strip()) else rel
     return {

@@ -316,8 +316,9 @@ document.querySelector('[data-page="kakao-map"]').addEventListener('click', () =
 const CAP_MENUS = [
   { key: '1_original', label: '1_original', sub: '장면탐색' },
   { key: '2_scan', label: '2_scan', sub: '구도' },
-  { key: '3_detail-move', label: '3_detail-move', sub: '세부이동' },
-  { key: '4_final', label: '4_final', sub: '최종' },
+  { key: '3_detail-refine', label: '3_detail-refine', sub: '세부조정' },
+  { key: '4_tilt', label: '4_tilt', sub: '틸트' },
+  { key: '5_final', label: '5_final', sub: '최종' },
 ];
 let capSession = null;
 let capMenu = '1_original';
@@ -399,7 +400,7 @@ function renderMenuContent() {
   const el = document.getElementById('captures-content');
   const groups = capSession.menus[capMenu] || [];
 
-  if (capMenu === '4_final') { renderFinalCompare(el); return; }
+  if (capMenu === '5_final') { renderFinalCompare(el); return; }
 
   let html = '';
   // 1_original: 원본 위에 1.4배율 박스 + best 박스 + 이동 방향 오버레이
@@ -410,10 +411,79 @@ function renderMenuContent() {
       <div id="orig-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
     </div>`;
   }
+  // 3_detail-refine: 48분할 후보를 사진 대신 좌표로만 저장 → 원본 위에 박스로 그려 보여줌.
+  const refineGroup = capMenu === '3_detail-refine'
+    ? groups.find((g) => g.jsons && g.jsons['scores.json']) : null;
+  if (refineGroup) {
+    html += `<div class="panel" style="margin-bottom:20px;">
+      <div class="metric-title" style="font-size:13px;">정밀 구도 시각화 (48분할 후보 · top3 · best, 좌표만 저장)</div>
+      <div class="image-frame" style="background:#0b1020;"><canvas id="refine-overlay" style="display:block;width:100%;height:auto;"></canvas></div>
+      <div id="refine-overlay-legend" class="score-meta" style="margin-top:8px;line-height:1.7;"></div>
+    </div>`;
+  }
   html += groups.length ? groups.map(renderGroup).join('') : '<p style="color:#6b7280;">이 단계 데이터 없음</p>';
   el.innerHTML = html;
 
   if (capMenu === '1_original' && groups.length) drawOriginalOverlay(groups[0]);
+  if (refineGroup) drawRefineOverlay(refineGroup);
+}
+
+function drawRefineOverlay(group) {
+  const canvas = document.getElementById('refine-overlay');
+  const legend = document.getElementById('refine-overlay-legend');
+  if (!canvas) return;
+  const origImg = (group.images.find((im) => /original_frame/i.test(im.name)) || {}).url;
+  const sc = group.jsons['scores.json'] || {};
+  const cands = sc.candidates || [];                 // [{source_box, passed_filter, score}]
+  const top3 = (sc.top3 || []).map((t) => t.source_box);
+  const bestBox = sc.best_crop && sc.best_crop.source_box;
+  const offset = sc.offset;
+  if (!origImg) { legend.textContent = 'original_frame 이미지 없음'; return; }
+
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    const W = img.naturalWidth, H = img.naturalHeight;
+    canvas.width = W; canvas.height = H;
+    ctx.drawImage(img, 0, 0, W, H);
+    const lw = Math.max(2, Math.round(W / 320));
+    const box = (coords, color, width, label) => {
+      const [l, t, r, b] = coords;
+      ctx.lineWidth = width; ctx.strokeStyle = color; ctx.strokeRect(l, t, r - l, b - t);
+      if (label) {
+        const fs = Math.max(12, Math.round(W / 48));
+        ctx.font = `bold ${fs}px sans-serif`;
+        const tw = ctx.measureText(label).width, th = fs + 6, ty = t >= th ? t - th : t;
+        ctx.fillStyle = color; ctx.fillRect(l, ty, tw + 10, th);
+        ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(label, l + 5, ty + th / 2);
+      }
+    };
+    // 48분할 후보: 필터 통과=하늘색, 잘림=반투명 회색
+    cands.forEach((c) => box(c.source_box, c.passed_filter ? 'rgba(56,189,248,0.9)' : 'rgba(148,163,184,0.35)', Math.max(1, lw - 1)));
+    top3.forEach((t, i) => box(t, '#f59e0b', lw, `top${i + 1}`));   // top3 = 주황
+    if (bestBox) {
+      box(bestBox, '#22c55e', lw + 1, 'best');                      // best = 초록
+      const [l, t, r, b] = bestBox;
+      const bcx = (l + r) / 2, bcy = (t + b) / 2, icx = W / 2, icy = H / 2;
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth = lw;
+      ctx.beginPath(); ctx.moveTo(icx, icy); ctx.lineTo(bcx, bcy); ctx.stroke();
+      const dot = (x, y, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, lw * 2.2, 0, Math.PI * 2); ctx.fill(); };
+      dot(icx, icy, '#3b82f6'); dot(bcx, bcy, '#22c55e');
+    }
+    const items = [
+      `<span style="color:#38bdf8;">■</span> 48분할 후보(통과 ${cands.filter((c) => c.passed_filter).length}/${cands.length})`,
+      '<span style="color:#f59e0b;">■</span> GAIC top3',
+      '<span style="color:#22c55e;">■</span> 최종 best',
+    ];
+    if (offset) {
+      const num = (v) => (typeof v === 'number' ? v.toFixed(1) : v);
+      items.push(`<span style="color:#22c55e;">→</span> 이동: dr=${num(offset.dr)}px, θ=${num(offset.theta_deg)}° (dx=${num(offset.dx)}, dy=${num(offset.dy)})`);
+    }
+    if (sc.score_source) items.push(`점수: ${sc.score_source}`);
+    legend.innerHTML = items.join(' &nbsp; ');
+  };
+  img.onerror = () => { legend.textContent = '이미지 로드 실패'; };
+  img.src = origImg;
 }
 
 function drawOriginalOverlay(group) {
@@ -470,7 +540,7 @@ function drawOriginalOverlay(group) {
 
 function renderFinalCompare(el) {
   const fc = capSession.final_compare;
-  if (!fc) { el.innerHTML = '<p style="color:#6b7280;">4_final 데이터 없음 (final.jpg 없음)</p>'; return; }
+  if (!fc) { el.innerHTML = '<p style="color:#6b7280;">5_final 데이터 없음 (final.jpg 없음)</p>'; return; }
   const card = (title, side) => side ? `
     <div class="panel" style="width:340px;">
       <div class="metric-title" style="font-size:13px;">${title}</div>
