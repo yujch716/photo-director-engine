@@ -20,7 +20,6 @@ import numpy as np
 from PIL import Image
 from skimage.metrics import structural_similarity as ssim
 
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
 
 DEFAULT_SSIM_SIZE = 256
@@ -64,8 +63,6 @@ def save_scan_peak_inputs(
     if peak_index is not None and 0 <= peak_index < len(frame_bytes_list):
         best_bytes = _center_2x_jpeg(frame_bytes_list[peak_index])
         (folder / "best.jpg").write_bytes(best_bytes)
-        # 단계별 NIMA 누적 로그(선택 = SSIM 정점 프레임).
-        append_session_nima(session_id, "2_scan/peak", image_bytes=best_bytes, data_dir=base)
 
     if result is not None:
         report = {

@@ -37,6 +37,7 @@ ZOOM_RATIO = 1.4     # 1.4배 중앙 크롭(48분할 후보 창 크기 = W/1.4)
 COLS, ROWS = 8, 6    # 8×6 = 48분할
 CONTAIN_THRES = 0.90
 TOP_K = 3            # GAIC top3
+FALLBACK_TOPK = 12   # 완전 통과 0개일 때: 제일 덜 자른 12개로 폴백 → GAIC가 그중 top3 선택
 
 
 def _targets_to_boxes(targets: list[dict] | None, W: int, H: int) -> list[dict[str, Any]]:
@@ -131,11 +132,13 @@ def refine_detail(
     candidates = generate_candidates(
         img_1x=frame, img_2x_size=frame.size, zoom_ratio=ZOOM_RATIO, cols=COLS, rows=ROWS,
     )
-    # 2) 주피사체 잘린 후보 제거(fallback_topk=0 → 다 잘리면 빈 리스트)
+    # 2) 주피사체 잘린 후보 제거.
+    #    완전 통과 0개(객체가 커서 다 잘림)면 → 제일 덜 자른 12개로 폴백(best_crop.py와 동일 방식).
+    #    이후 3)의 GAIC가 그 12개 중 구도 좋은 top3를 고른다. filter_status="fallback_topk"로 알림.
     boxes = _targets_to_boxes(targets, W, H)
     filtered, filter_status = filter_candidates_by_boxes(
         candidates=candidates, boxes=boxes, contain_thres=CONTAIN_THRES,
-        edge_margin_ratio=0.0, selected_require="all", fallback_topk=0,
+        edge_margin_ratio=0.0, selected_require="all", fallback_topk=FALLBACK_TOPK,
     )
 
     folder = None
@@ -265,6 +268,8 @@ def refine_detail(
         "best_crop": best_crop,
         "target_image": "data:image/jpeg;base64," + base64.b64encode(_jpeg(final_crop)).decode(),
         "score_source": score_source,
+        # "strict"=완전 포함 통과분 사용 / "fallback_topk"=다 잘려서 '제일 덜 자른' 후보로 폴백
+        "filter_status": filter_status,
         "offset": offset,
         "saved": saved_rel,
         "timing_ms": report["timing_ms"],

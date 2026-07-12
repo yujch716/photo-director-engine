@@ -16,7 +16,6 @@ from PIL import Image
 
 from models import qwen_vl
 from models.nima import run_nima_score
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
 
 SAVE_DEBUG = True
@@ -195,8 +194,6 @@ def select_final(
             }
             saved = _save_final(frames_bytes, selected_index, meta, session_id=session_id)
             print(f"[vlm-select] saved: drone-data/{saved}")
-            # 단계별 NIMA 누적 로그(선택 프레임의 NIMA 재사용).
-            append_session_nima(session_id, "vlm", score=nima_scores[selected_index])
         except Exception as e:
             print(f"[vlm-select] WARN 저장 실패(무시): {e}")
 

@@ -161,18 +161,14 @@ def list_sessions():
 
 @app.get("/session/{session_id}")
 def get_session(session_id: str):
-    """세션의 단계별 이미지 + json + nima-score.json 을 반환한다(뷰어용)."""
+    """세션의 단계별 이미지 + json + 최종 비교(원본 vs 최종)를 반환한다(뷰어용).
+
+    진행 점수(NIMA/TOPIQ/SAMP)는 서버 파이프라인에서 미리 매기지 않고,
+    뷰어가 세션을 열 때 GET /session/{id}/scores 로 온디맨드 계산한다.
+    """
     root = (DRONE_DATA_DIR / session_id).resolve()
     if not str(root).startswith(str(DRONE_DATA_DIR.resolve()) + os.sep) or not root.is_dir():
         raise HTTPException(status_code=404, detail="session not found")
-
-    nima_score = None
-    nsp = root / "nima-score.json"
-    if nsp.exists():
-        try:
-            nima_score = json.loads(nsp.read_text(encoding="utf-8"))
-        except Exception:
-            nima_score = None
 
     menus: dict[str, list] = {}
     for step in _SESSION_STEPS:
@@ -195,30 +191,17 @@ def get_session(session_id: str):
             except Exception:
                 return None
 
-        # 최초 촬영본(2배 크롭 없음). NIMA는 nima-score.json 재사용, 없으면 계산.
+        # 최초 촬영본(2배 크롭 없음). NIMA 온디맨드 계산.
         initial = None
         if init.exists():
-            init_nima = None
-            for e in (nima_score or []):
-                if e.get("stage") == "1_original/initial":
-                    init_nima = e.get("nima")
-            if init_nima is None:
-                init_nima = _nima_of(init)
-            initial = {"url": _rel_url(init), "nima": init_nima}
+            initial = {"url": _rel_url(init), "nima": _nima_of(init)}
 
-        # 최종 점수는 nima-score.json의 5_final 항목 재사용, 없으면 계산.
         final = None
         original = None
         original_2x = None
         final_2x = None
         if fin.exists():
-            fin_nima = None
-            for e in (nima_score or []):
-                if e.get("stage") == "5_final":
-                    fin_nima = e.get("nima")
-            if fin_nima is None:
-                fin_nima = _nima_of(fin)
-            final = {"url": _rel_url(fin), "nima": fin_nima}
+            final = {"url": _rel_url(fin), "nima": _nima_of(fin)}
 
             orig = root / "1_original" / "original_1x.jpg"
             # 확대본: 새 파일명 original_1_5x 우선, 옛 데이터는 original_2x 폴백.
@@ -249,10 +232,56 @@ def get_session(session_id: str):
 
     return {
         "session_id": session_id,
-        "nima_score": nima_score,
         "menus": menus,
         "final_compare": final_compare,
     }
+
+
+# 단계별 대표 이미지: (단계 라벨, [파일 후보들 — 먼저 존재하는 것 사용])
+_STAGE_SCORE_TARGETS = [
+    ("1_original/initial", ["1_original/initial.jpg"]),
+    ("1_original/best", ["1_original/best.jpg", "1_original/original_1x.jpg"]),
+    ("2_scan/peak", ["2_scan/best.jpg"]),
+    ("2_scan/arrived", ["2_scan/arrived_1_5x.jpg", "2_scan/arrived_1x.jpg"]),
+    ("3_detail-refine", ["3_detail-refine/final.jpg"]),
+    ("4_tilt", ["4_tilt/best.jpg"]),
+    ("5_final", ["5_final/final.jpg"]),
+]
+
+
+@app.get("/session/{session_id}/scores")
+def get_session_scores(session_id: str):
+    """세션 단계별 대표 이미지를 NIMA·TOPIQ·SAMP 3종으로 온디맨드 채점해 반환한다(뷰어 진행점수용).
+
+    서버 파이프라인은 채점하지 않는다(지연 최소화). 뷰어가 세션 열 때만 이 API로 계산.
+    """
+    root = (DRONE_DATA_DIR / session_id).resolve()
+    if not str(root).startswith(str(DRONE_DATA_DIR.resolve()) + os.sep) or not root.is_dir():
+        raise HTTPException(status_code=404, detail="session not found")
+
+    from models.sampnet import score_image as _samp
+    from models.topiq import run_topiq_score as _topiq
+
+    def _s(fn, b):
+        try:
+            return round(float(fn(b)["score"]), 4)
+        except Exception:
+            return None
+
+    stages = []
+    for label, cands in _STAGE_SCORE_TARGETS:
+        p = next((root / c for c in cands if (root / c).exists()), None)
+        if p is None:
+            continue
+        b = p.read_bytes()
+        stages.append({
+            "stage": label,
+            "image": _rel_url(p),
+            "nima": _s(run_nima_score, b),
+            "topiq": _s(_topiq, b),
+            "samp": _s(_samp, b),
+        })
+    return {"session_id": session_id, "stages": stages}
 
 
 
@@ -415,20 +444,29 @@ async def tilt_peak(
     frames: list[UploadFile] = File(...),
     angles: str = Form(...),
     session_id: str | None = Form(default=None),
+    bboxes: str | None = Form(default=None),
 ):
     """틸트 sweep 프레임들에 SAMP 구도 점수를 매겨 최고 점수 프레임(각도)을 반환한다.
 
     입력: multipart — frames(여러 장, 위→아래 시간순), angles(JSON 각도 배열, 프레임과 같은 순서·개수), session_id.
+    bboxes(선택): 프레임별 대상 객체 [cx,cy,w,h] JSON 리스트(길이=frames), 또는 단일 [cx,cy,w,h].
+      주면 그 프레임의 1.4배 크롭이 객체를 자르면 후보에서 제외한다.
     반환(슬림): {peak_angle, peak_score, saved}  — 상세는 scores.json + 콘솔 로그로 확인.
-    저장: drone-data/<session_id>/3_detail-move/tilt/
+    저장: drone-data/<session_id>/4_tilt/
     """
     frame_bytes = [await f.read() for f in frames]
     try:
         parsed_angles = json.loads(angles)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"angles JSON 파싱 실패: {exc}") from exc
+    parsed_bboxes = None
+    if bboxes is not None:
+        try:
+            parsed_bboxes = json.loads(bboxes)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"bboxes JSON 파싱 실패: {exc}") from exc
     try:
-        return find_tilt_peak(frame_bytes, parsed_angles, session_id=session_id)
+        return find_tilt_peak(frame_bytes, parsed_angles, bboxes=parsed_bboxes, session_id=session_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

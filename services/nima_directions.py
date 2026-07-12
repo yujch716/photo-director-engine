@@ -17,7 +17,6 @@ from typing import Any
 from PIL import Image
 
 from models.nima import run_nima_score
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_indexed_save_dir
 
 # 중앙 크롭 창을 각 방향으로 얼마나(창 크기 대비 비율) 옮길지.
@@ -125,8 +124,6 @@ def _save_debug(
     (folder / "report.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    # 단계별 NIMA 누적 로그(선택 = 최고 방향 크롭, 이미 계산된 best_score 재사용).
-    append_session_nima(session_id, f"3_detail-move/lateral/{folder.name}", score=result.get("best_score"), data_dir=base)
     return str(folder.relative_to(base))
 
 

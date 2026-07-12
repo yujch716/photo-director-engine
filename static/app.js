@@ -358,30 +358,69 @@ async function loadSession(sid) {
     if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
     capSession = data;
     capMenu = '1_original'; // 첫 진입 자동선택
-    renderNimaScore(data.nima_score);
+    renderScoresLoading();
     renderMenuTabs();
     renderMenuContent();
     detail.style.display = 'block';
     status.textContent = '';
+    loadSessionScores(sid);   // 진행점수는 온디맨드로 별도 요청(메뉴는 먼저 뜸)
   } catch (err) { detail.style.display = 'none'; showError(errorEl, status, err.message); }
 }
 
-function renderNimaScore(list) {
+function renderScoresLoading() {
   const el = document.getElementById('captures-nima');
-  if (!list || !list.length) {
-    el.innerHTML = '<div class="metric-title" style="font-size:13px;">NIMA 진행 점수</div><p style="color:#6b7280;margin:4px 0 0;">nima-score.json 없음</p>';
+  el.innerHTML = '<div class="metric-title" style="font-size:13px;">진행 점수 (NIMA · TOPIQ · SAMP)</div>'
+    + '<p style="color:#6b7280;margin:4px 0 0;">계산 중… (단계별 이미지에 3종 모델 채점, 첫 요청은 모델 로딩으로 몇 초)</p>';
+}
+
+async function loadSessionScores(sid) {
+  const el = document.getElementById('captures-nima');
+  try {
+    const res = await fetch(`/session/${encodeURIComponent(sid)}/scores`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `Server error: ${res.status}`);
+    renderScores(data.stages);
+  } catch (err) {
+    el.innerHTML = '<div class="metric-title" style="font-size:13px;">진행 점수</div>'
+      + `<p style="color:#b91c1c;margin:4px 0 0;">점수 계산 실패: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+const SCORE_MODELS = [
+  { key: 'nima', label: 'NIMA', color: '#2563eb' },   // 미학 ~1-10
+  { key: 'topiq', label: 'TOPIQ', color: '#16a34a' }, // 무참조 품질 0-1
+  { key: 'samp', label: 'SAMP', color: '#d97706' },   // 구도 1-5
+];
+
+function renderScores(stages) {
+  const el = document.getElementById('captures-nima');
+  if (!stages || !stages.length) {
+    el.innerHTML = '<div class="metric-title" style="font-size:13px;">진행 점수</div><p style="color:#6b7280;margin:4px 0 0;">채점할 대표 이미지 없음</p>';
     return;
   }
-  const vals = list.map((e) => e.nima);
-  const mn = Math.min(...vals), mx = Math.max(...vals);
-  const rows = list.map((e) => {
-    const w = mx > mn ? ((e.nima - mn) / (mx - mn)) * 100 : 50;
-    return `<tr>
-      <td class="mono" style="white-space:nowrap;padding-right:12px;">${escapeHtml(e.stage)}</td>
-      <td style="width:220px;"><div style="background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:12px;width:${w}%;background:#2563eb;"></div></div></td>
-      <td style="padding-left:10px;">${e.nima}</td></tr>`;
-  }).join('');
-  el.innerHTML = `<div class="metric-title" style="font-size:13px;margin-bottom:6px;">NIMA 진행 점수 (단계가 진행될수록 오르는지)</div><table><tbody>${rows}</tbody></table>`;
+  // 지표별 스케일이 달라 막대는 각 지표 내 min-max 정규화(추이 비교용). 숫자는 원값.
+  const range = {};
+  SCORE_MODELS.forEach((m) => {
+    const vs = stages.map((s) => s[m.key]).filter((v) => v != null);
+    range[m.key] = vs.length ? [Math.min(...vs), Math.max(...vs)] : [0, 1];
+  });
+  const cell = (s, m) => {
+    const v = s[m.key];
+    if (v == null) return '<td style="padding-left:10px;color:#9ca3af;">-</td>';
+    const [mn, mx] = range[m.key];
+    const w = mx > mn ? ((v - mn) / (mx - mn)) * 100 : 50;
+    return `<td style="padding:2px 8px;"><div style="display:flex;align-items:center;gap:6px;">
+      <div style="flex:1;min-width:60px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:10px;width:${w}%;background:${m.color};"></div></div>
+      <span style="width:46px;text-align:right;font-size:12px;">${v ?? '-'}</span></div></td>`;
+  };
+  const header = `<tr><th style="text-align:left;padding-right:12px;">단계</th>${
+    SCORE_MODELS.map((m) => `<th style="color:${m.color};padding:0 8px;text-align:left;">${m.label}</th>`).join('')}</tr>`;
+  const rows = stages.map((s) => `<tr>
+    <td class="mono" style="white-space:nowrap;padding-right:12px;">${escapeHtml(s.stage)}</td>
+    ${SCORE_MODELS.map((m) => cell(s, m)).join('')}</tr>`).join('');
+  el.innerHTML = `<div class="metric-title" style="font-size:13px;margin-bottom:6px;">진행 점수 — NIMA · TOPIQ · SAMP (단계별 추이 비교)</div>
+    <table style="width:100%;"><thead>${header}</thead><tbody>${rows}</tbody></table>
+    <div class="score-meta" style="margin-top:6px;">※ 세 지표는 스케일이 달라(NIMA~1-10 · TOPIQ 0-1 · SAMP 1-5) 막대는 각 지표 내 정규화. 숫자는 원값.</div>`;
 }
 
 function renderMenuTabs() {

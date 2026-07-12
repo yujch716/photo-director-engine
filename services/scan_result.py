@@ -17,7 +17,6 @@ from typing import Any
 
 from PIL import Image
 
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
 
 
@@ -64,8 +63,6 @@ def save_scan_result(
     except Exception as e:
         print(f"[WARN] arrived_1_5x.jpg 생성 실패(무시): {e}")
 
-    # 단계별 NIMA 누적 로그(선택 = 도착 사진의 1.4배 크롭, 없으면 원본).
-    append_session_nima(session_id, "2_scan/arrived", image_bytes=(arrived_2x_bytes or image_bytes), data_dir=base)
 
     if meta_json is not None:
         try:

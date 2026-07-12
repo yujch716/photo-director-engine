@@ -40,7 +40,7 @@ flags:
 # 정해진 후보 중 하나, 없으면 null (nullable enum)
 enums:
   facing:
-    values: [front, side, back, mixed]
+    values: [front, side, back]
     nullable: true
     desc: >
       인물들이 주로 향한 방향 (구도 판단용). 사람이 없으면 null.

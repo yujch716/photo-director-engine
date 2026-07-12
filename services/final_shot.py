@@ -10,7 +10,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_save_dir
 
 
@@ -40,8 +39,6 @@ def save_final_shot(
             json.dumps(parsed, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-    # 단계별 NIMA 누적 로그(최종 촬영 사진).
-    append_session_nima(session_id, "5_final", image_bytes=image_bytes, data_dir=base)
 
     saved = session_id if (session_id and session_id.strip()) else rel
     return {

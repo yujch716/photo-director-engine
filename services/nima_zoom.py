@@ -17,7 +17,6 @@ from PIL import Image
 
 from models.nima import run_nima_score
 from services.nima_directions import _fully_contains, _object_pixel_boxes  # 잘림 판정 재사용
-from services.nima_log import append_session_nima
 from services.session_paths import DRONE_DATA_DIR, make_ts, resolve_indexed_save_dir
 
 # 중앙 1.4배율 크롭 기준 배율 스텝(±10%).
@@ -100,8 +99,6 @@ def _save_debug(
     (folder / "report.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    # 단계별 NIMA 누적 로그(선택 = 최고 배율 크롭, 이미 계산된 best_score 재사용).
-    append_session_nima(session_id, f"3_detail-move/depth/{folder.name}", score=result.get("best_score"), data_dir=base)
     return str(folder.relative_to(base))
 
 

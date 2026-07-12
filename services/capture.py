@@ -13,7 +13,6 @@ from models.landmark_clip import identify_object, tag_image
 from services.best_crop import select_best_crop
 from services.drone_offset import compute_offset
 from services.kakao_places import get_landmarks_by_keyword
-from services.nima_log import append_session_nima
 from services.session_paths import make_ts, resolve_save_dir
 
 TEST_DATA_DIR = pathlib.Path("drone-data")
@@ -188,11 +187,6 @@ def process_capture(
         except Exception as e:
             print(f"[WARN] report.json에 best 저장 실패(무시): {e}")
 
-    # 단계별 NIMA 누적 로그(선택 = best 크롭, 없으면 원본 1x).
-    # '최초' 지점은 /initial-shot("1_original/initial")이고, 여기는 best 크롭 지점.
-    best_path = capture_dir / "best.jpg"
-    sel_bytes = best_path.read_bytes() if best_path.exists() else image_bytes
-    append_session_nima(session_id, "1_original/best", image_bytes=sel_bytes, data_dir=TEST_DATA_DIR)
 
     # HTTP 응답은 드론이 실제로 쓰는 것만 슬림하게 반환한다.
     # (location/nearby_landmarks/tags/results/reference 태그 등 상세는 result.json에 다 저장돼 있고
