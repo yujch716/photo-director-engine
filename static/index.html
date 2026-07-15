@@ -18,6 +18,7 @@
       <button data-page="topiq">TOPIQ Score</button>
       <button data-page="kakao-map">Kakao Map</button>
       <button data-page="captures">Drone</button>
+      <button data-page="test-tools">Test Tools</button>
     </nav>
   </aside>
 
@@ -208,6 +209,38 @@
         <div id="captures-nima" class="panel" style="margin-bottom:16px;"></div>
         <div id="captures-menu" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
         <div id="captures-content"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-test-tools">
+      <h2>Test Tools — 파이프라인 시각화 도구</h2>
+      <p class="status">test/ 폴더의 독립 실행형 HTML 도구입니다. 클릭하면 새 탭에서 열립니다.</p>
+
+      <div class="result-grid visible">
+        <a class="panel" href="/test/test.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>1. 후보 선택 애니메이션</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">48분할 후보 중 하나를 선택 → 탈락 후보는 X 표시 유지하다가 다같이 어두워짐 → 선택 후보가 원본 속 위치로 확대·안착 → 1.4배 중앙 크롭과 비교. WebM/GIF로 녹화 가능.</p>
+        </a>
+        <a class="panel" href="/test/test-image.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>2. 48분할 후보 정지 이미지</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">48분할 후보에 번호를 매기고, 지정한 후보들을 초록 테두리로 표시한 정지 이미지. PNG로 저장.</p>
+        </a>
+        <a class="panel" href="/test/test-9split.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>3. top3 → 9분할 시각화</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">/detail-refine의 GAIC top3 후보 각각을 중앙+8방향(20% 이동)으로 9분할해서 3장으로 따로 그림. 그룹별 GAIC 1위(finalist)는 두꺼운 초록 테두리, 나머지 8개는 얇은 검은 테두리.</p>
+        </a>
+        <a class="panel" href="/test/top3-crops.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>4. top3 crop 다운로드</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">48분할 중 GAIC 상위 3장을 실제로 잘라낸 crop 이미지를 그대로 보여주고 JPG로 다운로드.</p>
+        </a>
+        <a class="panel" href="/test/crop-center.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>5. 배율 중앙 크롭 프리뷰</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">이미지를 업로드하고 배율(Nx)을 입력하면 중앙을 그 배율로 잘라 미리보기(원본+크롭영역 오버레이, 크롭 결과). PNG 저장 가능.</p>
+        </a>
+        <a class="panel" href="/test/final-compare.html" target="_blank" rel="noopener" style="display:block;text-decoration:none;color:inherit;">
+          <h3>6. 최종 비교(선택 후보 vs 중앙 크롭)</h3>
+          <p style="font-size:13px;color:#4b5563;line-height:1.5;">test.html 애니메이션 마지막 장면과 동일하게, 원본 위에 초록(선택 후보 위치)·빨강(중앙 크롭) 박스를 그리고 각 중심에 점을 찍어 선으로 연결한 정지 이미지. PNG 저장 가능.</p>
+        </a>
       </div>
     </section>
   </main>

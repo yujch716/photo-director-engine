@@ -95,11 +95,17 @@ def process_capture(
     nearby_places = get_landmarks_by_keyword(lat, lng) if lat is not None and lng is not None else []
     nearby_names = [p["name"] for p in nearby_places]
 
-    # 전체 이미지 태깅 (schema.yaml 형식)
-    try:
-        tags = tag_image(image_bytes)
-    except Exception:
-        tags = None
+    # 랜드마크 타깃(사람 아닌 클래스) 유무. best_crop의 DINO(有)/GAIC(無) 분기와 동일 기준.
+    has_landmark = any(str(t.get("class", "")).lower() != "person" for t in target_list)
+
+    # 전체 이미지 CLIP 태깅(schema.yaml 형식)은 랜드마크 매칭(DINO)에서만 쓰이므로,
+    # 랜드마크 타깃이 있을 때만 실행한다(사람만 → GAIC라 태그 불필요, 지연 절감).
+    tags = None
+    if has_landmark:
+        try:
+            tags = tag_image(image_bytes)
+        except Exception:
+            tags = None
 
     # person_count는 CLIP이 못 세므로, 선택된 타깃 중 person 라벨 개수로 채운다.
     # (schema: "사진의 타깃 인물 수 (관중 제외)" — 관중 bystander는 타깃이 아니라 제외됨)
@@ -129,13 +135,15 @@ def process_capture(
             landmark = None
             confidence = None
             scores = None
-            try:
-                clip_result = identify_object(image_bytes, t["bbox"])
-                landmark = clip_result["landmark"]
-                confidence = clip_result["best_score"]
-                scores = clip_result["scores"]
-            except Exception:
-                pass
+            # 랜드마크 식별(CLIP)은 사람 아닌 타깃에만 의미가 있다(person엔 무의미 → 스킵).
+            if str(t.get("class", "")).lower() != "person":
+                try:
+                    clip_result = identify_object(image_bytes, t["bbox"])
+                    landmark = clip_result["landmark"]
+                    confidence = clip_result["best_score"]
+                    scores = clip_result["scores"]
+                except Exception:
+                    pass
 
             results.append({
                 "class": t["class"],

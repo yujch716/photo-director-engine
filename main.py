@@ -37,6 +37,7 @@ DRONE_DATA_DIR.mkdir(exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/drone-data", StaticFiles(directory="drone-data"), name="drone-data")
+app.mount("/test", StaticFiles(directory="test"), name="test")
 
 # reference(임베딩 원본) 이미지 폴더가 있으면 /refimages로 서빙한다.
 # metadata.json의 path(예: "ver_1/50.jpeg")가 이 폴더 기준 상대경로.
