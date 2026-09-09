@@ -1,7 +1,7 @@
 # Forshot
 
 DJI 드론(Mini 4 Pro) 또는 폰 카메라로 피사체를 촬영하면, AI 서버(YOLO 객체 탐지 + 구도 분석)와 통신하며 드론을 자동으로 움직여 **삼분할 구도(Rule of Thirds)**에 맞는 사진을 찍어주는 Android 앱 서버입니다.
-클라이언트 레포지토리 : https://github.com/yujch716/forshot-client-app
+- 클라이언트 레포지토리 : https://github.com/yujch716/forshot-client-app
 
 ## 핵심 기능
 
